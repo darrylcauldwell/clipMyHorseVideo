@@ -1,4 +1,4 @@
-# clipMyRound
+# clipMyHorseVideo
 
 Simple iOS 26 utility app for merging multiple short horse showjumping video clips into a single video.
 
@@ -42,7 +42,7 @@ No persistence — everything is transient (pick, edit, export, done).
 - `AVAssetImageGenerator.image(at:)` (async)
 
 ### Bundle ID
-`dev.dreamfold.clipMyRound`
+`dev.dreamfold.clipMyHorseVideo`
 
 ### Permissions
 - `NSPhotoLibraryAddUsageDescription` — save merged video (only permission needed)

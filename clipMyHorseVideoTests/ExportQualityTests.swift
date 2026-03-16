@@ -1,7 +1,7 @@
 import AVFoundation
 import Testing
 
-@testable import clipMyRound
+@testable import clipMyHorseVideo
 
 struct ExportQualityTests {
     @Test func allCasesHavePresetNames() {

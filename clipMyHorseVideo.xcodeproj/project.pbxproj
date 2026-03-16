@@ -12,37 +12,37 @@
 			containerPortal = CA000001CA000001CA000001 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = CA000006CA000006CA000006;
-			remoteInfo = clipMyRound;
+			remoteInfo = clipMyHorseVideo;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		CA000004CA000004CA000004 /* clipMyRound.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = clipMyRound.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		CA000005CA000005CA000005 /* clipMyRoundTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = clipMyRoundTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA000004CA000004CA000004 /* clipMyHorseVideo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = clipMyHorseVideo.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA000005CA000005CA000005 /* clipMyHorseVideoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = clipMyHorseVideoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		CA000010CA000010CA000010 /* Exceptions for "clipMyRound" folder in "clipMyRound" target */ = {
+		CA000010CA000010CA000010 /* Exceptions for "clipMyHorseVideo" folder in "clipMyHorseVideo" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = CA000006CA000006CA000006 /* clipMyRound */;
+			target = CA000006CA000006CA000006 /* clipMyHorseVideo */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		CA00000ECA00000ECA00000E /* clipMyRound */ = {
+		CA00000ECA00000ECA00000E /* clipMyHorseVideo */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				CA000010CA000010CA000010 /* Exceptions for "clipMyRound" folder in "clipMyRound" target */,
+				CA000010CA000010CA000010 /* Exceptions for "clipMyHorseVideo" folder in "clipMyHorseVideo" target */,
 			);
-			path = clipMyRound;
+			path = clipMyHorseVideo;
 			sourceTree = "<group>";
 		};
-		CA00000FCA00000FCA00000F /* clipMyRoundTests */ = {
+		CA00000FCA00000FCA00000F /* clipMyHorseVideoTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = clipMyRoundTests;
+			path = clipMyHorseVideoTests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -64,8 +64,8 @@
 		CA000002CA000002CA000002 = {
 			isa = PBXGroup;
 			children = (
-				CA00000ECA00000ECA00000E /* clipMyRound */,
-				CA00000FCA00000FCA00000F /* clipMyRoundTests */,
+				CA00000ECA00000ECA00000E /* clipMyHorseVideo */,
+				CA00000FCA00000FCA00000F /* clipMyHorseVideoTests */,
 				CA000003CA000003CA000003 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -73,8 +73,8 @@
 		CA000003CA000003CA000003 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				CA000004CA000004CA000004 /* clipMyRound.app */,
-				CA000005CA000005CA000005 /* clipMyRoundTests.xctest */,
+				CA000004CA000004CA000004 /* clipMyHorseVideo.app */,
+				CA000005CA000005CA000005 /* clipMyHorseVideoTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -82,9 +82,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		CA000006CA000006CA000006 /* clipMyRound */ = {
+		CA000006CA000006CA000006 /* clipMyHorseVideo */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = CA000014CA000014CA000014 /* Build configuration list for PBXNativeTarget "clipMyRound" */;
+			buildConfigurationList = CA000014CA000014CA000014 /* Build configuration list for PBXNativeTarget "clipMyHorseVideo" */;
 			buildPhases = (
 				CA000008CA000008CA000008 /* Sources */,
 				CA000009CA000009CA000009 /* Frameworks */,
@@ -95,16 +95,16 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				CA00000ECA00000ECA00000E /* clipMyRound */,
+				CA00000ECA00000ECA00000E /* clipMyHorseVideo */,
 			);
-			name = clipMyRound;
-			productName = clipMyRound;
-			productReference = CA000004CA000004CA000004 /* clipMyRound.app */;
+			name = clipMyHorseVideo;
+			productName = clipMyHorseVideo;
+			productReference = CA000004CA000004CA000004 /* clipMyHorseVideo.app */;
 			productType = "com.apple.product-type.application";
 		};
-		CA000007CA000007CA000007 /* clipMyRoundTests */ = {
+		CA000007CA000007CA000007 /* clipMyHorseVideoTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = CA000015CA000015CA000015 /* Build configuration list for PBXNativeTarget "clipMyRoundTests" */;
+			buildConfigurationList = CA000015CA000015CA000015 /* Build configuration list for PBXNativeTarget "clipMyHorseVideoTests" */;
 			buildPhases = (
 				CA00000BCA00000BCA00000B /* Sources */,
 				CA00000CCA00000CCA00000C /* Frameworks */,
@@ -116,11 +116,11 @@
 				CA000012CA000012CA000012 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				CA00000FCA00000FCA00000F /* clipMyRoundTests */,
+				CA00000FCA00000FCA00000F /* clipMyHorseVideoTests */,
 			);
-			name = clipMyRoundTests;
-			productName = clipMyRoundTests;
-			productReference = CA000005CA000005CA000005 /* clipMyRoundTests.xctest */;
+			name = clipMyHorseVideoTests;
+			productName = clipMyHorseVideoTests;
+			productReference = CA000005CA000005CA000005 /* clipMyHorseVideoTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
@@ -142,7 +142,7 @@
 					};
 				};
 			};
-			buildConfigurationList = CA000013CA000013CA000013 /* Build configuration list for PBXProject "clipMyRound" */;
+			buildConfigurationList = CA000013CA000013CA000013 /* Build configuration list for PBXProject "clipMyHorseVideo" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -156,8 +156,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				CA000006CA000006CA000006 /* clipMyRound */,
-				CA000007CA000007CA000007 /* clipMyRoundTests */,
+				CA000006CA000006CA000006 /* clipMyHorseVideo */,
+				CA000007CA000007CA000007 /* clipMyHorseVideoTests */,
 			);
 		};
 /* End PBXProject section */
@@ -191,7 +191,7 @@
 /* Begin PBXTargetDependency section */
 		CA000012CA000012CA000012 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = CA000006CA000006CA000006 /* clipMyRound */;
+			target = CA000006CA000006CA000006 /* clipMyHorseVideo */;
 			targetProxy = CA000011CA000011CA000011 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -325,7 +325,7 @@
 				DEAD_CODE_STRIPPING = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = clipMyRound/Info.plist;
+				INFOPLIST_FILE = clipMyHorseVideo/Info.plist;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -338,7 +338,7 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				MARKETING_VERSION = 0.1.1;
-				PRODUCT_BUNDLE_IDENTIFIER = dev.dreamfold.clipMyRound;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.dreamfold.clipMyHorseVideo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -359,7 +359,7 @@
 				DEAD_CODE_STRIPPING = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = clipMyRound/Info.plist;
+				INFOPLIST_FILE = clipMyHorseVideo/Info.plist;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -372,7 +372,7 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				MARKETING_VERSION = 0.1.1;
-				PRODUCT_BUNDLE_IDENTIFIER = dev.dreamfold.clipMyRound;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.dreamfold.clipMyHorseVideo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -391,7 +391,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 0.1.1;
-				PRODUCT_BUNDLE_IDENTIFIER = dev.dreamfold.clipMyRoundTests;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.dreamfold.clipMyHorseVideoTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -399,7 +399,7 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/clipMyRound.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/clipMyRound";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/clipMyHorseVideo.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/clipMyHorseVideo";
 			};
 			name = Debug;
 		};
@@ -411,7 +411,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 0.1.1;
-				PRODUCT_BUNDLE_IDENTIFIER = dev.dreamfold.clipMyRoundTests;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.dreamfold.clipMyHorseVideoTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -419,14 +419,14 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/clipMyRound.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/clipMyRound";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/clipMyHorseVideo.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/clipMyHorseVideo";
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		CA000013CA000013CA000013 /* Build configuration list for PBXProject "clipMyRound" */ = {
+		CA000013CA000013CA000013 /* Build configuration list for PBXProject "clipMyHorseVideo" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				CA000016CA000016CA000016 /* Debug */,
@@ -435,7 +435,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		CA000014CA000014CA000014 /* Build configuration list for PBXNativeTarget "clipMyRound" */ = {
+		CA000014CA000014CA000014 /* Build configuration list for PBXNativeTarget "clipMyHorseVideo" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				CA000018CA000018CA000018 /* Debug */,
@@ -444,7 +444,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		CA000015CA000015CA000015 /* Build configuration list for PBXNativeTarget "clipMyRoundTests" */ = {
+		CA000015CA000015CA000015 /* Build configuration list for PBXNativeTarget "clipMyHorseVideoTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				CA00001ACA00001ACA00001A /* Debug */,

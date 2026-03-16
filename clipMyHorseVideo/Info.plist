@@ -5,8 +5,8 @@
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>CFBundleDisplayName</key>
-	<string>clipMyRound</string>
+	<string>clipMyHorseVideo</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>clipMyRound needs permission to save your merged video to your photo library.</string>
+	<string>clipMyHorseVideo needs permission to save your merged video to your photo library.</string>
 </dict>
 </plist>

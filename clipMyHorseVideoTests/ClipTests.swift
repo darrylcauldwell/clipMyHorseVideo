@@ -1,7 +1,7 @@
 import AVFoundation
 import Testing
 
-@testable import clipMyRound
+@testable import clipMyHorseVideo
 
 @MainActor
 struct ClipTests {
