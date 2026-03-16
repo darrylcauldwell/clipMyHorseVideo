@@ -1,0 +1,85 @@
+# Xcode
+build/
+DerivedData/
+*.xcuserstate
+*.xccheckout
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+xcresulttool/
+xcrun/
+
+# User-specific
+xcuserdata/
+*.xcworkspace/xcuserdata/
+
+# Swift Package Manager
+.build/
+Package.resolved
+.swiftpm/
+Packages/
+
+# CocoaPods
+Pods/
+
+# Carthage
+Carthage/Build
+Carthage/Checkouts
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+Gemfile.lock
+
+# Code Injection
+iOSInjectionProject/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# IDE/Editor
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+
+# Claude Code / AI Assistant files
+.claude/
+.claude_memory/
+.cursorrules
+.cursor/
+
+# Secrets and credentials
+.env
+.env.*
+*.p8
+*.p12
+*.pem
+*.key
+credentials.json
+serviceAccountKey.json
+api_key.json
+
+# iOS-specific
+AuthKey_*.p8
+fastlane/api_key.json
+*.mobileprovision
+*.provisionprofile
+
+# Crash logs
+*.crash
+*.ips
+
+# Playgrounds
+timeline.xctimeline
+playground.xcworkspace
