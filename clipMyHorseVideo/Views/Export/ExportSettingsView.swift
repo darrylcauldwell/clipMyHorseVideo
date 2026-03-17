@@ -6,6 +6,7 @@ struct ExportSettingsView: View {
     let onComplete: () -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var quality: ExportQuality = .hd1080
+    @State private var aspectRatio: AspectRatio = .original
     @State private var showProgress = false
 
     private var totalDurationTime: CMTime {
@@ -29,7 +30,7 @@ struct ExportSettingsView: View {
     private var estimatedFileSize: String {
         let seconds = CMTimeGetSeconds(totalDurationTime)
         guard seconds > 0 else { return "0 bytes" }
-        let bytes = Int64(seconds * quality.estimatedBitrate / 8)
+        let bytes = Int64(seconds * quality.estimatedBitrate / 8 * aspectRatio.estimatedPixelMultiplier)
         let formatter = ByteCountFormatter()
         formatter.countStyle = .memory
         return formatter.string(fromByteCount: bytes)
@@ -55,6 +56,19 @@ struct ExportSettingsView: View {
                     .foregroundStyle(.secondary)
 
                 Text("Estimated size: ~\(estimatedFileSize)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section("Aspect Ratio") {
+                Picker("Aspect Ratio", selection: $aspectRatio) {
+                    ForEach(AspectRatio.allCases) { ratio in
+                        Text(ratio.rawValue).tag(ratio)
+                    }
+                }
+                .pickerStyle(.navigationLink)
+
+                Text(aspectRatio.description)
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -96,7 +110,8 @@ struct ExportSettingsView: View {
             NavigationStack {
                 ExportProgressView(
                     clips: clips,
-                    quality: quality
+                    quality: quality,
+                    aspectRatio: aspectRatio
                 ) {
                     dismiss()
                     onComplete()

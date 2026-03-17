@@ -3,6 +3,7 @@ import SwiftUI
 struct ExportProgressView: View {
     let clips: [Clip]
     let quality: ExportQuality
+    var aspectRatio: AspectRatio = .original
     let onComplete: () -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var compositionService = VideoCompositionService()
@@ -149,7 +150,8 @@ struct ExportProgressView: View {
             exportState = .exporting
             let outputURL = try await compositionService.export(
                 clips: clips,
-                quality: quality
+                quality: quality,
+                aspectRatio: aspectRatio
             )
 
             exportState = .saving

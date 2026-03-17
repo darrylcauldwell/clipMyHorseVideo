@@ -12,7 +12,8 @@ final class VideoCompositionService {
 
     func export(
         clips: [Clip],
-        quality: ExportQuality
+        quality: ExportQuality,
+        aspectRatio: AspectRatio = .original
     ) async throws -> URL {
         guard !clips.isEmpty else { throw CompositionError.noClips }
 
@@ -22,7 +23,8 @@ final class VideoCompositionService {
 
         do {
             let (composition, videoComposition) = try await buildComposition(
-                clips: clips
+                clips: clips,
+                aspectRatio: aspectRatio
             )
             let outputURL = try await performExport(
                 composition: composition,
@@ -43,23 +45,33 @@ final class VideoCompositionService {
     // MARK: - Composition Building
 
     private func buildComposition(
-        clips: [Clip]
+        clips: [Clip],
+        aspectRatio: AspectRatio
     ) async throws -> (AVMutableComposition, AVVideoComposition?) {
         let composition = AVMutableComposition()
 
         let hasCrossfade = clips.dropLast().contains { $0.transitionAfter == .crossfade }
         if hasCrossfade && clips.count > 1 {
-            return try await buildCrossfadeComposition(composition: composition, clips: clips)
+            return try await buildCrossfadeComposition(
+                composition: composition,
+                clips: clips,
+                aspectRatio: aspectRatio
+            )
         } else {
-            try await buildSequentialComposition(composition: composition, clips: clips)
-            return (composition, nil)
+            let videoComposition = try await buildSequentialComposition(
+                composition: composition,
+                clips: clips,
+                aspectRatio: aspectRatio
+            )
+            return (composition, videoComposition)
         }
     }
 
     private func buildSequentialComposition(
         composition: AVMutableComposition,
-        clips: [Clip]
-    ) async throws {
+        clips: [Clip],
+        aspectRatio: AspectRatio
+    ) async throws -> AVVideoComposition? {
         guard let videoTrack = composition.addMutableTrack(
             withMediaType: .video,
             preferredTrackID: kCMPersistentTrackID_Invalid
@@ -87,11 +99,39 @@ final class VideoCompositionService {
         }
 
         Log.composition.info("Sequential composition built: \(clips.count) clips")
+
+        guard aspectRatio != .original else { return nil }
+
+        let sourceSize = try await determineRenderSize(for: clips)
+        let targetSize = aspectRatio.targetSize(from: sourceSize)
+        let transform = aspectRatio.cropTransform(from: sourceSize, to: targetSize)
+
+        var layerConfig = AVVideoCompositionLayerInstruction.Configuration(
+            assetTrack: videoTrack
+        )
+        layerConfig.setTransform(transform, at: .zero)
+        let layerInstruction = AVVideoCompositionLayerInstruction(configuration: layerConfig)
+
+        let instruction = AVVideoCompositionInstruction(
+            configuration: .init(
+                layerInstructions: [layerInstruction],
+                timeRange: CMTimeRange(start: .zero, duration: insertionTime)
+            )
+        )
+
+        return AVVideoComposition(
+            configuration: .init(
+                frameDuration: CMTime(value: 1, timescale: 30),
+                instructions: [instruction],
+                renderSize: targetSize
+            )
+        )
     }
 
     private func buildCrossfadeComposition(
         composition: AVMutableComposition,
-        clips: [Clip]
+        clips: [Clip],
+        aspectRatio: AspectRatio
     ) async throws -> (AVMutableComposition, AVVideoComposition) {
         guard let trackA = composition.addMutableTrack(
             withMediaType: .video,
@@ -140,7 +180,8 @@ final class VideoCompositionService {
         let videoComposition = buildVideoComposition(
             clipTimeRanges: clipTimeRanges,
             totalDuration: insertionTime,
-            renderSize: renderSize
+            renderSize: renderSize,
+            aspectRatio: aspectRatio
         )
 
         Log.composition.info("Crossfade composition built: \(clips.count) clips")
@@ -152,8 +193,14 @@ final class VideoCompositionService {
     private func buildVideoComposition(
         clipTimeRanges: [(track: AVMutableCompositionTrack, timeRange: CMTimeRange)],
         totalDuration: CMTime,
-        renderSize: CGSize
+        renderSize: CGSize,
+        aspectRatio: AspectRatio = .original
     ) -> AVVideoComposition {
+        let targetSize = aspectRatio.targetSize(from: renderSize)
+        let cropTransform: CGAffineTransform? = aspectRatio != .original
+            ? aspectRatio.cropTransform(from: renderSize, to: targetSize)
+            : nil
+
         var instructions: [AVVideoCompositionInstruction] = []
 
         for i in 0..<clipTimeRanges.count {
@@ -173,6 +220,9 @@ final class VideoCompositionService {
                         assetTrack: current.track
                     )
                     layerConfig.setOpacity(1.0, at: preRange.start)
+                    if let cropTransform {
+                        layerConfig.setTransform(cropTransform, at: preRange.start)
+                    }
                     let layerInstruction = AVVideoCompositionLayerInstruction(configuration: layerConfig)
 
                     let instruction = AVVideoCompositionInstruction(
@@ -199,6 +249,9 @@ final class VideoCompositionService {
                         end: 0.0
                     )
                 )
+                if let cropTransform {
+                    fadeOutConfig.setTransform(cropTransform, at: overlapRange.start)
+                }
                 let fadeOutInstruction = AVVideoCompositionLayerInstruction(configuration: fadeOutConfig)
 
                 // Next track fades in
@@ -212,6 +265,9 @@ final class VideoCompositionService {
                         end: 1.0
                     )
                 )
+                if let cropTransform {
+                    fadeInConfig.setTransform(cropTransform, at: overlapRange.start)
+                }
                 let fadeInInstruction = AVVideoCompositionLayerInstruction(configuration: fadeInConfig)
 
                 let overlapInstruction = AVVideoCompositionInstruction(
@@ -238,6 +294,9 @@ final class VideoCompositionService {
                         assetTrack: current.track
                     )
                     layerConfig.setOpacity(1.0, at: remainingRange.start)
+                    if let cropTransform {
+                        layerConfig.setTransform(cropTransform, at: remainingRange.start)
+                    }
                     let layerInstruction = AVVideoCompositionLayerInstruction(configuration: layerConfig)
 
                     let instruction = AVVideoCompositionInstruction(
@@ -255,7 +314,7 @@ final class VideoCompositionService {
             configuration: .init(
                 frameDuration: CMTime(value: 1, timescale: 30),
                 instructions: instructions,
-                renderSize: renderSize
+                renderSize: targetSize
             )
         )
     }
