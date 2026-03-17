@@ -10,6 +10,8 @@ final class Clip: Identifiable {
     var trimStart: CMTime
     var trimEnd: CMTime
     var thumbnail: UIImage?
+    var filmstripThumbnails: [UIImage] = []
+    var transitionAfter: TransitionStyle = .none
 
     var trimmedDuration: CMTime {
         CMTimeSubtract(trimEnd, trimStart)

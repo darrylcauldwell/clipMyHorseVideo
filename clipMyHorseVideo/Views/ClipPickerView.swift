@@ -11,18 +11,31 @@ struct ClipPickerView: View {
         VStack(spacing: 24) {
             Spacer()
 
-            Image(systemName: "film.stack")
+            Image(systemName: "figure.equestrian.sports")
                 .font(.system(size: 64))
                 .foregroundStyle(.secondary)
 
-            Text("Select Video Clips")
+            Text("Build Your Round")
                 .font(.title2.bold())
 
-            Text("Pick up to 20 clips from your photo library to merge into a single video.")
+            Text("Choose the clips from your showjumping round in order. You can reorder and trim them next.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
+
+            HStack(spacing: 12) {
+                flowStep(icon: "photo.on.rectangle.angled", label: "Pick")
+                Image(systemName: "chevron.right")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+                flowStep(icon: "slider.horizontal.3", label: "Edit")
+                Image(systemName: "chevron.right")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+                flowStep(icon: "square.and.arrow.up", label: "Share")
+            }
+            .padding(.top, 4)
 
             PhotosPicker(
                 selection: $selectedItems,
@@ -56,6 +69,16 @@ struct ClipPickerView: View {
         }
     }
 
+    private func flowStep(icon: String, label: String) -> some View {
+        VStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.body)
+            Text(label)
+                .font(.caption)
+        }
+        .foregroundStyle(.secondary)
+    }
+
     private func loadSelectedVideos() async {
         guard !selectedItems.isEmpty else { return }
         isLoading = true
@@ -68,7 +91,6 @@ struct ClipPickerView: View {
                 let asset = try await PhotoLibraryService.loadAsset(from: item)
                 let duration = try await asset.load(.duration)
                 let clip = Clip(asset: asset, duration: duration)
-                clip.thumbnail = await ThumbnailService.generateThumbnail(for: asset)
                 loadedClips.append(clip)
             } catch {
                 Log.photos.error("Failed to load clip: \(error.localizedDescription)")
@@ -79,6 +101,7 @@ struct ClipPickerView: View {
             loadError = "No clips could be loaded. Try different videos."
         } else {
             clips = loadedClips
+            await ThumbnailService.generateThumbnails(for: loadedClips)
         }
 
         selectedItems = []

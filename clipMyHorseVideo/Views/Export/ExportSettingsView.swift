@@ -6,20 +6,33 @@ struct ExportSettingsView: View {
     let onComplete: () -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var quality: ExportQuality = .hd1080
-    @State private var transition: TransitionStyle = .crossfade
     @State private var showProgress = false
 
-    private var totalDuration: String {
+    private var totalDurationTime: CMTime {
         var total = CMTime.zero
         for clip in clips {
             total = CMTimeAdd(total, clip.trimmedDuration)
         }
-        if transition == .crossfade && clips.count > 1 {
-            let overlapCount = clips.count - 1
-            let overlap = CMTime(seconds: transition.overlapDuration * Double(overlapCount), preferredTimescale: 600)
+        // Subtract overlap for each crossfade boundary
+        let crossfadeCount = clips.dropLast().filter { $0.transitionAfter == .crossfade }.count
+        if crossfadeCount > 0 {
+            let overlap = CMTime(seconds: TransitionStyle.crossfade.overlapDuration * Double(crossfadeCount), preferredTimescale: 600)
             total = CMTimeSubtract(total, overlap)
         }
-        return total.formattedDuration
+        return total
+    }
+
+    private var totalDuration: String {
+        totalDurationTime.formattedDuration
+    }
+
+    private var estimatedFileSize: String {
+        let seconds = CMTimeGetSeconds(totalDurationTime)
+        guard seconds > 0 else { return "0 bytes" }
+        let bytes = Int64(seconds * quality.estimatedBitrate / 8)
+        let formatter = ByteCountFormatter()
+        formatter.countStyle = .memory
+        return formatter.string(fromByteCount: bytes)
     }
 
     var body: some View {
@@ -40,17 +53,24 @@ struct ExportSettingsView: View {
                 Text(quality.description)
                     .font(.caption)
                     .foregroundStyle(.secondary)
+
+                Text("Estimated size: ~\(estimatedFileSize)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
 
-            Section("Transition") {
-                Picker("Transition Style", selection: $transition) {
-                    ForEach(TransitionStyle.allCases) { t in
-                        Text(t.rawValue).tag(t)
+            Section("Transitions") {
+                ForEach(TransitionStyle.allCases) { style in
+                    Button {
+                        for clip in clips {
+                            clip.transitionAfter = style
+                        }
+                    } label: {
+                        Label("Set All to \(style.rawValue)", systemImage: style == .none ? "scissors" : "wand.and.rays")
                     }
                 }
-                .pickerStyle(.segmented)
 
-                Text(transition.description)
+                Text("Transitions can also be set individually on the timeline.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -76,8 +96,7 @@ struct ExportSettingsView: View {
             NavigationStack {
                 ExportProgressView(
                     clips: clips,
-                    quality: quality,
-                    transition: transition
+                    quality: quality
                 ) {
                     dismiss()
                     onComplete()

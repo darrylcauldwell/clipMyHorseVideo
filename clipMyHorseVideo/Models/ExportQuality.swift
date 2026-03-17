@@ -22,4 +22,13 @@ enum ExportQuality: String, CaseIterable, Identifiable {
         case .hd720: "1280x720 (HD)"
         }
     }
+
+    /// Estimated bitrate in bits per second for file size estimation.
+    var estimatedBitrate: Double {
+        switch self {
+        case .original: 50_000_000
+        case .hd1080: 17_000_000
+        case .hd720: 8_000_000
+        }
+    }
 }

@@ -6,13 +6,13 @@ final class VideoCompositionService {
     var progress: Double = 0
     var isExporting = false
     var exportError: Error?
+    var exportedURL: URL?
 
     private let crossfadeDuration = CMTime(seconds: 0.5, preferredTimescale: 600)
 
     func export(
         clips: [Clip],
-        quality: ExportQuality,
-        transition: TransitionStyle
+        quality: ExportQuality
     ) async throws -> URL {
         guard !clips.isEmpty else { throw CompositionError.noClips }
 
@@ -22,8 +22,7 @@ final class VideoCompositionService {
 
         do {
             let (composition, videoComposition) = try await buildComposition(
-                clips: clips,
-                transition: transition
+                clips: clips
             )
             let outputURL = try await performExport(
                 composition: composition,
@@ -32,6 +31,7 @@ final class VideoCompositionService {
             )
             isExporting = false
             progress = 1.0
+            exportedURL = outputURL
             return outputURL
         } catch {
             exportError = error
@@ -43,12 +43,12 @@ final class VideoCompositionService {
     // MARK: - Composition Building
 
     private func buildComposition(
-        clips: [Clip],
-        transition: TransitionStyle
+        clips: [Clip]
     ) async throws -> (AVMutableComposition, AVVideoComposition?) {
         let composition = AVMutableComposition()
 
-        if transition == .crossfade && clips.count > 1 {
+        let hasCrossfade = clips.dropLast().contains { $0.transitionAfter == .crossfade }
+        if hasCrossfade && clips.count > 1 {
             return try await buildCrossfadeComposition(composition: composition, clips: clips)
         } else {
             try await buildSequentialComposition(composition: composition, clips: clips)
@@ -129,7 +129,7 @@ final class VideoCompositionService {
             let compositionTimeRange = CMTimeRange(start: insertionTime, duration: clip.trimmedDuration)
             clipTimeRanges.append((track: videoTrack, timeRange: compositionTimeRange))
 
-            if index < clips.count - 1 {
+            if index < clips.count - 1 && clip.transitionAfter == .crossfade {
                 insertionTime = CMTimeAdd(insertionTime, CMTimeSubtract(clip.trimmedDuration, crossfadeDuration))
             } else {
                 insertionTime = CMTimeAdd(insertionTime, clip.trimmedDuration)

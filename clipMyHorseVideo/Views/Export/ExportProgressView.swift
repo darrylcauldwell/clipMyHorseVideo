@@ -3,12 +3,13 @@ import SwiftUI
 struct ExportProgressView: View {
     let clips: [Clip]
     let quality: ExportQuality
-    let transition: TransitionStyle
     let onComplete: () -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var compositionService = VideoCompositionService()
     @State private var exportState: ExportState = .preparing
     @State private var errorMessage: String?
+    @State private var exportedFileURL: URL?
+    @State private var exportCompleteTrigger = 0
 
     enum ExportState {
         case preparing
@@ -73,18 +74,35 @@ struct ExportProgressView: View {
             Spacer()
 
             if exportState == .completed {
-                Button {
-                    onComplete()
-                } label: {
-                    Text("Done")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(.blue)
-                        .foregroundStyle(.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                VStack(spacing: 12) {
+                    if let exportedFileURL {
+                        ShareLink(
+                            item: exportedFileURL,
+                            subject: Text("My Round"),
+                            message: Text("Check out my showjumping round!")
+                        ) {
+                            Label("Share Your Round", systemImage: "square.and.arrow.up")
+                                .font(.headline)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .padding(.horizontal, 32)
+                    }
+
+                    Button {
+                        cleanUpExportedFile()
+                        onComplete()
+                    } label: {
+                        Text("Done")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(.secondary.opacity(0.2))
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
+                    .padding(.horizontal, 32)
                 }
-                .padding(.horizontal, 32)
             }
 
             if exportState == .failed {
@@ -118,6 +136,8 @@ struct ExportProgressView: View {
             }
         }
         .interactiveDismissDisabled(exportState == .exporting || exportState == .saving)
+        .sensoryFeedback(.success, trigger: exportCompleteTrigger)
+        .onDisappear { cleanUpExportedFile() }
         .task { await startExport() }
     }
 
@@ -129,21 +149,30 @@ struct ExportProgressView: View {
             exportState = .exporting
             let outputURL = try await compositionService.export(
                 clips: clips,
-                quality: quality,
-                transition: transition
+                quality: quality
             )
 
             exportState = .saving
             try await PhotoLibraryService.saveToPhotoLibrary(url: outputURL)
 
-            // Clean up temp file
-            try? FileManager.default.removeItem(at: outputURL)
+            // Keep temp file for sharing; cleaned up when user taps Done or view disappears
+            exportedFileURL = outputURL
 
-            exportState = .completed
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                exportState = .completed
+            }
+            exportCompleteTrigger += 1
         } catch {
             errorMessage = error.localizedDescription
             exportState = .failed
             Log.export.error("Export pipeline failed: \(error.localizedDescription)")
+        }
+    }
+
+    private func cleanUpExportedFile() {
+        if let exportedFileURL {
+            try? FileManager.default.removeItem(at: exportedFileURL)
+            self.exportedFileURL = nil
         }
     }
 }
