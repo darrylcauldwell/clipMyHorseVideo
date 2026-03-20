@@ -14,10 +14,9 @@ struct ExportSettingsView: View {
         for clip in clips {
             total = CMTimeAdd(total, clip.trimmedDuration)
         }
-        // Subtract overlap for each crossfade boundary
-        let crossfadeCount = clips.dropLast().filter { $0.transitionAfter == .crossfade }.count
-        if crossfadeCount > 0 {
-            let overlap = CMTime(seconds: TransitionStyle.crossfade.overlapDuration * Double(crossfadeCount), preferredTimescale: 600)
+        // Subtract overlap for each transition boundary
+        for clip in clips.dropLast() where clip.transitionAfter != .none {
+            let overlap = CMTime(seconds: clip.transitionAfter.overlapDuration, preferredTimescale: 600)
             total = CMTimeSubtract(total, overlap)
         }
         return total
@@ -80,7 +79,7 @@ struct ExportSettingsView: View {
                             clip.transitionAfter = style
                         }
                     } label: {
-                        Label("Set All to \(style.rawValue)", systemImage: style == .none ? "scissors" : "wand.and.rays")
+                        Label("Set All to \(style.rawValue)", systemImage: style.iconName)
                     }
                 }
 

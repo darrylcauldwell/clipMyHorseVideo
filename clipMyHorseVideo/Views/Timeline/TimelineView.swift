@@ -215,7 +215,7 @@ private struct TransitionIndicator: View {
             }
         } label: {
             HStack(spacing: 6) {
-                Image(systemName: clip.transitionAfter == .none ? "scissors" : "wand.and.rays")
+                Image(systemName: clip.transitionAfter.iconName)
                     .font(.caption2)
                 Text(clip.transitionAfter.rawValue)
                     .font(.caption2)
