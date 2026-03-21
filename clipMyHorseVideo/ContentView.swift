@@ -14,6 +14,24 @@ struct ContentView: View {
                 }
             }
             .animation(.default, value: clips.isEmpty)
+            .onAppear {
+                handlePendingNavigation()
+            }
+            .onChange(of: NavigationState.shared.pendingDestination) {
+                handlePendingNavigation()
+            }
+        }
+    }
+
+    private func handlePendingNavigation() {
+        guard let destination = NavigationState.shared.pendingDestination else { return }
+        NavigationState.shared.pendingDestination = nil
+
+        switch destination {
+        case .picker:
+            clips = []
+        case .timeline:
+            break
         }
     }
 }
