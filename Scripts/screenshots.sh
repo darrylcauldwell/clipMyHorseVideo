@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# clipMyHorseVideo - simctl-based App Store Screenshot Pipeline
+# ClearRound - simctl-based App Store Screenshot Pipeline
 # =============================================================
 #
 # Captures screenshots by launching the app with --screenshot-mode --screenshot-screen <name>.
@@ -29,10 +29,10 @@ if [ ! -f "$SHARED_LIB" ]; then
 fi
 source "$SHARED_LIB"
 
-BUNDLE_ID="dev.dreamfold.clipMyHorseVideo"
+BUNDLE_ID="dev.dreamfold.ClearRound"
 PROJECT="${PROJECT_DIR}/clipMyHorseVideo.xcodeproj"
 SCHEME="clipMyHorseVideo"
-DERIVED_DATA="/tmp/clipMyHorseVideoScreenshotBuild"
+DERIVED_DATA="/tmp/ClearRoundScreenshotBuild"
 OUTPUT_DIR="${PROJECT_DIR}/fastlane/screenshots"
 SETTLE_TIME=4
 
@@ -71,7 +71,7 @@ for arg in "$@"; do
 done
 
 echo "==============================================="
-echo "clipMyHorseVideo Screenshot Pipeline (simctl)"
+echo "ClearRound Screenshot Pipeline (simctl)"
 echo "==============================================="
 echo ""
 
@@ -84,7 +84,7 @@ screenshot_build_app "$PROJECT" "$SCHEME" "$DERIVED_DATA"
 
 APP_BUNDLE=$(screenshot_find_app_bundle "$DERIVED_DATA" "clipMyHorseVideo")
 if [ -z "$APP_BUNDLE" ]; then
-    echo "Error: Could not find clipMyHorseVideo.app in derived data"
+    echo "Error: Could not find ClearRound.app in derived data"
     exit 1
 fi
 echo "App bundle: ${APP_BUNDLE}"

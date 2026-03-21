@@ -1,6 +1,9 @@
-# clipMyHorseVideo
+# ClearRound
 
 Simple iOS 26 utility app for merging multiple short horse showjumping video clips into a single video.
+
+**Display Name**: ClearRound
+**Tagline**: Edit. Export. Go clear.
 
 ## Tech Stack
 
@@ -45,7 +48,7 @@ No persistence — everything is transient (pick, edit, export, done).
 - `AVAssetImageGenerator.image(at:)` (async)
 
 ### Bundle ID
-`dev.dreamfold.clipMyHorseVideo`
+`dev.dreamfold.ClearRound`
 
 ### Permissions
 - `NSPhotoLibraryAddUsageDescription` — save merged video (only permission needed)

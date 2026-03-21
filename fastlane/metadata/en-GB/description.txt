@@ -1,0 +1,13 @@
+ClearRound makes it easy to combine your showjumping clips into one polished video.
+
+Pick your clips from your photo library, arrange them in order, trim the start and end of each one, then export a single merged video ready to share.
+
+Features:
+- Import multiple video clips from your photo library
+- Drag to reorder clips on the timeline
+- Trim each clip with a visual filmstrip editor
+- Add crossfade transitions between clips
+- Choose export quality to balance file size and detail
+- Share directly to social media, messaging apps, or save to your library
+
+Built for riders, grooms, and equestrian fans who want to share their rounds without fiddly editing software.

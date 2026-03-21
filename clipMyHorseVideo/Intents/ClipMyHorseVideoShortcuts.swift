@@ -1,6 +1,6 @@
 import AppIntents
 
-struct ClipMyHorseVideoShortcuts: AppShortcutsProvider {
+struct ClearRoundShortcuts: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {
         AppShortcut(
             intent: StartEditingIntent(),

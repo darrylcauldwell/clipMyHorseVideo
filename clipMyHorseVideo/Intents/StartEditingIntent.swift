@@ -2,7 +2,7 @@ import AppIntents
 
 struct StartEditingIntent: AppIntent {
     static var title: LocalizedStringResource = "Start Editing My Round"
-    static var description: IntentDescription = "Opens clipMyHorseVideo to the clip picker to start building your showjumping round."
+    static var description: IntentDescription = "Opens ClearRound to the clip picker to start building your showjumping round."
     static var openAppWhenRun = true
 
     @MainActor

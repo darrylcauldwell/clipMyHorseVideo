@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct clipMyHorseVideoApp: App {
+struct ClearRoundApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()

@@ -1,0 +1,1 @@
+First release of ClearRound. Import clips, arrange on a timeline, trim, add transitions, and export a single merged video.

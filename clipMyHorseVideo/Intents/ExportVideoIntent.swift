@@ -2,7 +2,7 @@ import AppIntents
 
 struct ExportVideoIntent: AppIntent {
     static var title: LocalizedStringResource = "Export My Round"
-    static var description: IntentDescription = "Opens clipMyHorseVideo to export your assembled showjumping round."
+    static var description: IntentDescription = "Opens ClearRound to export your assembled showjumping round."
     static var openAppWhenRun = true
 
     @MainActor
