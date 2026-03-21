@@ -3,9 +3,11 @@ import SwiftUI
 
 struct TimelineView: View {
     @Binding var clips: [Clip]
+    @Binding var textOverlays: [TextOverlay]
     @State private var selectedClipForTrim: Clip?
     @State private var showExportSettings = false
     @State private var showPreview = false
+    @State private var showTextEditor = false
     @State private var additionalItems: [PhotosPickerItem] = []
 
     // Undo delete state
@@ -67,6 +69,14 @@ struct TimelineView: View {
                     }
                     .disabled(clips.isEmpty)
 
+                    Button {
+                        let overlay = TextOverlay()
+                        textOverlays.append(overlay)
+                        showTextEditor = true
+                    } label: {
+                        Image(systemName: "textformat")
+                    }
+
                     addClipsButton
 
                     Button("Export") {
@@ -80,10 +90,18 @@ struct TimelineView: View {
                     TrimEditorView(clip: clip)
                 }
             }
+            .sheet(isPresented: $showTextEditor) {
+                if let overlay = textOverlays.last {
+                    NavigationStack {
+                        TextOverlayEditorView(overlay: overlay)
+                    }
+                }
+            }
             .sheet(isPresented: $showExportSettings) {
                 NavigationStack {
-                    ExportSettingsView(clips: clips) {
+                    ExportSettingsView(clips: clips, textOverlays: textOverlays) {
                         clips = []
+                        textOverlays = []
                     }
                 }
             }

@@ -1,5 +1,7 @@
 import AVFoundation
 import CoreImage
+import QuartzCore
+import UIKit
 
 @Observable
 @MainActor
@@ -18,7 +20,8 @@ final class VideoCompositionService {
         quality: ExportQuality,
         aspectRatio: AspectRatio = .original,
         colourAdjustment: ColourAdjustment = .default,
-        backgroundMusic: BackgroundMusic? = nil
+        backgroundMusic: BackgroundMusic? = nil,
+        textOverlays: [TextOverlay] = []
     ) async throws -> URL {
         guard !clips.isEmpty else { throw CompositionError.noClips }
 
@@ -47,6 +50,20 @@ final class VideoCompositionService {
                 )
             } else {
                 finalVideoComposition = videoComposition
+            }
+
+            // Apply text overlays if any
+            if !textOverlays.isEmpty {
+                let renderSize = try await determineRenderSize(for: clips)
+                if let mutableComp = finalVideoComposition as? AVMutableVideoComposition {
+                    applyTextOverlays(textOverlays, to: mutableComp, renderSize: renderSize)
+                } else if finalVideoComposition == nil {
+                    // Create a basic mutable video composition for text overlay
+                    let mutableComp = try await AVMutableVideoComposition.videoComposition(
+                        withPropertiesOf: composition
+                    )
+                    applyTextOverlays(textOverlays, to: mutableComp, renderSize: renderSize)
+                }
             }
 
             // Mix in background music if provided
@@ -536,6 +553,62 @@ final class VideoCompositionService {
 
         Log.export.info("Export completed successfully")
         return outputURL
+    }
+
+    // MARK: - Text Overlays
+
+    @MainActor
+    private func applyTextOverlays(
+        _ overlays: [TextOverlay],
+        to videoComposition: AVMutableVideoComposition,
+        renderSize: CGSize
+    ) {
+        guard !overlays.isEmpty else { return }
+
+        let videoLayer = CALayer()
+        videoLayer.frame = CGRect(origin: .zero, size: renderSize)
+
+        let parentLayer = CALayer()
+        parentLayer.frame = CGRect(origin: .zero, size: renderSize)
+        parentLayer.addSublayer(videoLayer)
+
+        for overlay in overlays where !overlay.text.isEmpty {
+            let textLayer = CATextLayer()
+            textLayer.string = overlay.text
+            textLayer.font = UIFont.systemFont(ofSize: overlay.fontSize, weight: .semibold)
+            textLayer.fontSize = overlay.fontSize
+            textLayer.foregroundColor = UIColor(overlay.colour).cgColor
+            textLayer.alignmentMode = .center
+            textLayer.contentsScale = UIScreen.main.scale
+            textLayer.isWrapped = true
+
+            if overlay.showShadow {
+                textLayer.shadowColor = UIColor.black.cgColor
+                textLayer.shadowOffset = CGSize(width: 1, height: -1)
+                textLayer.shadowOpacity = 0.8
+                textLayer.shadowRadius = 2
+            }
+
+            let textHeight = overlay.fontSize * 1.5
+            let padding: CGFloat = 16
+            let y = overlay.position.yFraction * renderSize.height - textHeight / 2
+
+            if overlay.backgroundOpacity > 0 {
+                let bgLayer = CALayer()
+                bgLayer.backgroundColor = UIColor.black.withAlphaComponent(overlay.backgroundOpacity).cgColor
+                bgLayer.cornerRadius = 6
+                bgLayer.frame = CGRect(x: padding, y: y - 4, width: renderSize.width - padding * 2, height: textHeight + 8)
+                parentLayer.addSublayer(bgLayer)
+            }
+
+            textLayer.frame = CGRect(x: padding, y: y, width: renderSize.width - padding * 2, height: textHeight)
+            parentLayer.addSublayer(textLayer)
+        }
+
+        videoComposition.animationTool = AVVideoCompositionCoreAnimationTool(
+            postProcessingAsVideoLayer: videoLayer,
+            in: parentLayer
+        )
     }
 
     // MARK: - Audio Mix

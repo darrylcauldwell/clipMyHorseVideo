@@ -4,6 +4,7 @@ import UniformTypeIdentifiers
 
 struct ExportSettingsView: View {
     let clips: [Clip]
+    var textOverlays: [TextOverlay] = []
     let onComplete: () -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var quality: ExportQuality = .hd1080
@@ -198,7 +199,8 @@ struct ExportSettingsView: View {
                     quality: quality,
                     aspectRatio: aspectRatio,
                     colourAdjustment: colourAdjustment,
-                    backgroundMusic: backgroundMusic
+                    backgroundMusic: backgroundMusic,
+                    textOverlays: textOverlays
                 ) {
                     dismiss()
                     onComplete()

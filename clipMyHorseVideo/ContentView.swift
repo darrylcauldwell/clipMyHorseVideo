@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var clips: [Clip] = []
+    @State private var textOverlays: [TextOverlay] = []
 
     var body: some View {
         NavigationStack {
@@ -9,7 +10,7 @@ struct ContentView: View {
                 if clips.isEmpty {
                     ClipPickerView(clips: $clips)
                 } else {
-                    TimelineView(clips: $clips)
+                    TimelineView(clips: $clips, textOverlays: $textOverlays)
                 }
             }
             .animation(.default, value: clips.isEmpty)

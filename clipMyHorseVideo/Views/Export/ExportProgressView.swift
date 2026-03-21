@@ -6,6 +6,7 @@ struct ExportProgressView: View {
     var aspectRatio: AspectRatio = .original
     var colourAdjustment: ColourAdjustment = .default
     var backgroundMusic: BackgroundMusic?
+    var textOverlays: [TextOverlay] = []
     let onComplete: () -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var compositionService = VideoCompositionService()
@@ -155,7 +156,8 @@ struct ExportProgressView: View {
                 quality: quality,
                 aspectRatio: aspectRatio,
                 colourAdjustment: colourAdjustment,
-                backgroundMusic: backgroundMusic
+                backgroundMusic: backgroundMusic,
+                textOverlays: textOverlays
             )
 
             exportState = .saving
