@@ -66,7 +66,7 @@ final class JumpDetectionService {
         let confidence: Double
     }
 
-    private static func detectJumps(
+    private nonisolated static func detectJumps(
         asset: AVAsset,
         padding: Double,
         progressHandler: @escaping (Double) async -> Void
@@ -133,7 +133,7 @@ final class JumpDetectionService {
     }
 
     /// Measure motion between two frames using pixel difference.
-    private static func measureMotionIntensity(from previous: CIImage, to current: CIImage, context: CIContext) -> Double {
+    private nonisolated static func measureMotionIntensity(from previous: CIImage, to current: CIImage, context: CIContext) -> Double {
         guard let diffFilter = CIFilter(name: "CIDifferenceBlendMode") else { return 0 }
         diffFilter.setValue(previous, forKey: kCIInputImageKey)
         diffFilter.setValue(current, forKey: kCIInputBackgroundImageKey)
@@ -153,7 +153,7 @@ final class JumpDetectionService {
     }
 
     /// Calculate adaptive threshold based on motion score distribution.
-    private static func calculateAdaptiveThreshold(scores: [(time: Double, intensity: Double)]) -> Double {
+    private nonisolated static func calculateAdaptiveThreshold(scores: [(time: Double, intensity: Double)]) -> Double {
         let intensities = scores.map(\.intensity).sorted()
         let mean = intensities.reduce(0, +) / Double(intensities.count)
         let variance = intensities.reduce(0) { $0 + ($1 - mean) * ($1 - mean) } / Double(intensities.count)
