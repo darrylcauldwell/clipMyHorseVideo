@@ -131,6 +131,9 @@ struct TimelineView: View {
             .onChange(of: additionalItems) {
                 Task { await loadAdditionalVideos() }
             }
+            .onDisappear {
+                undoTask?.cancel()
+            }
 
             // Undo toast
             if showUndoToast {

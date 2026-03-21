@@ -35,14 +35,9 @@ final class VideoCompositionService {
                 aspectRatio: aspectRatio
             )
 
-            // Apply colour filters if adjusted
+            // Apply colour filters if adjusted (only for sequential compositions without transitions)
             let finalVideoComposition: AVVideoComposition?
-            if !colourAdjustment.isDefault, let baseComposition = videoComposition {
-                finalVideoComposition = try baseComposition.videoComposition(
-                    withCIFiltersApplying: colourAdjustment
-                )
-            } else if !colourAdjustment.isDefault {
-                // No video composition yet — create one with CIFilter handler
+            if !colourAdjustment.isDefault, videoComposition == nil {
                 finalVideoComposition = try await buildCIFilterComposition(
                     for: composition,
                     clips: clips,
@@ -581,16 +576,6 @@ final class VideoCompositionService {
                 request.finish(with: output, context: ciContext)
             }
         )
-    }
-}
-
-// MARK: - AVVideoComposition + Colour Filters
-
-private extension AVVideoComposition {
-    func videoComposition(withCIFiltersApplying adjustment: ColourAdjustment) throws -> AVVideoComposition {
-        // For compositions with existing instructions, we apply the filter as a post-process
-        // by wrapping in a CIFilter-based composition
-        return self
     }
 }
 

@@ -153,12 +153,11 @@ struct ExportSettingsView: View {
             ) { result in
                 if case .success(let urls) = result, let url = urls.first {
                     guard url.startAccessingSecurityScopedResource() else { return }
-                    // Copy to temp to retain access
+                    defer { url.stopAccessingSecurityScopedResource() }
                     let dest = FileManager.default.temporaryDirectory
                         .appendingPathComponent(UUID().uuidString)
                         .appendingPathExtension(url.pathExtension)
                     try? FileManager.default.copyItem(at: url, to: dest)
-                    url.stopAccessingSecurityScopedResource()
                     backgroundMusic.url = dest
                     backgroundMusic.title = url.deletingPathExtension().lastPathComponent
                 }

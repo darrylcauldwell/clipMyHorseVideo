@@ -108,7 +108,7 @@ struct ClipPickerView: View {
             loadError = "No clips could be loaded. Try different videos."
         } else {
             clips = loadedClips
-            await ThumbnailService.generateThumbnails(for: loadedClips)
+            Task { await ThumbnailService.generateThumbnails(for: loadedClips) }
             Task { await analyseQuality(for: loadedClips) }
         }
 

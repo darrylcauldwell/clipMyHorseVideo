@@ -7,7 +7,7 @@ struct PreviewPlayerView: View {
     @State private var player: AVQueuePlayer?
     @State private var isPlaying = false
     @State private var currentClipIndex = 0
-    @State private var observerToken: Any?
+    @State private var observerTokens: [Any] = []
 
     var body: some View {
         VStack(spacing: 0) {
@@ -69,17 +69,22 @@ struct PreviewPlayerView: View {
         let queuePlayer = AVQueuePlayer(items: items)
         self.player = queuePlayer
 
-        // Track current clip index
-        observerToken = NotificationCenter.default.addObserver(
-            forName: .AVPlayerItemDidPlayToEndTime,
-            object: nil,
-            queue: .main
-        ) { _ in
-            if currentClipIndex < clips.count - 1 {
-                currentClipIndex += 1
-            } else {
-                isPlaying = false
+        // Track current clip index — scope observer to each specific item
+        let clipCount = clips.count
+        for item in items {
+            let token = NotificationCenter.default.addObserver(
+                forName: .AVPlayerItemDidPlayToEndTime,
+                object: item,
+                queue: .main
+            ) { [weak queuePlayer] _ in
+                guard queuePlayer != nil else { return }
+                if currentClipIndex < clipCount - 1 {
+                    currentClipIndex += 1
+                } else {
+                    isPlaying = false
+                }
             }
+            observerTokens.append(token)
         }
 
         queuePlayer.play()
@@ -88,8 +93,9 @@ struct PreviewPlayerView: View {
 
     private func cleanup() {
         player?.pause()
-        if let token = observerToken {
+        for token in observerTokens {
             NotificationCenter.default.removeObserver(token)
         }
+        observerTokens = []
     }
 }

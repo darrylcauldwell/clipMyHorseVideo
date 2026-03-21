@@ -3,6 +3,8 @@ import CoreImage
 import Vision
 
 enum VideoQualityService {
+    private static let ciContext = CIContext()
+    private static let colorSpace = CGColorSpaceCreateDeviceRGB()
     struct QualityReport {
         var warnings: [Warning] = []
 
@@ -101,7 +103,6 @@ enum VideoQualityService {
             let extent = outputImage.extent
             guard extent.width > 0, extent.height > 0 else { return 1.0 }
 
-            let context = CIContext()
             guard let areaAverage = CIFilter(name: "CIAreaAverage") else { return 1.0 }
             areaAverage.setValue(outputImage, forKey: kCIInputImageKey)
             areaAverage.setValue(CIVector(cgRect: extent), forKey: "inputExtent")
@@ -109,7 +110,7 @@ enum VideoQualityService {
             guard let avgImage = areaAverage.outputImage else { return 1.0 }
 
             var pixel = [UInt8](repeating: 0, count: 4)
-            context.render(avgImage, toBitmap: &pixel, rowBytes: 4, bounds: CGRect(x: 0, y: 0, width: 1, height: 1), format: .RGBA8, colorSpace: CGColorSpaceCreateDeviceRGB())
+            ciContext.render(avgImage, toBitmap: &pixel, rowBytes: 4, bounds: CGRect(x: 0, y: 0, width: 1, height: 1), format: .RGBA8, colorSpace: colorSpace)
 
             // Normalize to 0-1 range
             let brightness = Double(pixel[0]) / 255.0
