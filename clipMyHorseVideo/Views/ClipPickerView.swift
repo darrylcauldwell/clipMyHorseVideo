@@ -79,6 +79,13 @@ struct ClipPickerView: View {
         .foregroundStyle(.secondary)
     }
 
+    private func analyseQuality(for clips: [Clip]) async {
+        for clip in clips {
+            let report = await VideoQualityService.analyse(asset: clip.asset)
+            clip.qualityReport = report
+        }
+    }
+
     private func loadSelectedVideos() async {
         guard !selectedItems.isEmpty else { return }
         isLoading = true
@@ -103,8 +110,9 @@ struct ClipPickerView: View {
             clips = loadedClips
             for clip in loadedClips { clip.isClassifying = true }
             await ThumbnailService.generateThumbnails(for: loadedClips)
-            // Classify scenes in background
+            // Classify scenes and analyse quality in background
             Task { await SceneClassificationService.classifyAll(loadedClips) }
+            Task { await analyseQuality(for: loadedClips) }
         }
 
         selectedItems = []

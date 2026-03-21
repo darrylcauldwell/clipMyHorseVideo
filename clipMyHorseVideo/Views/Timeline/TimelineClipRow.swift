@@ -90,6 +90,12 @@ struct TimelineClipRow: View {
 
             Spacer()
 
+            if let report = clip.qualityReport, report.hasWarnings {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundStyle(.yellow)
+                    .help(report.warnings.map(\.message).joined(separator: "\n"))
+            }
+
             Image(systemName: "line.3.horizontal")
                 .foregroundStyle(.tertiary)
         }

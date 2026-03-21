@@ -23,6 +23,7 @@ final class Clip: Identifiable {
     var audioSpeedMode: AudioSpeedMode = .pitchCorrected
     var sceneType: SceneType = .unknown
     var isClassifying: Bool = false
+    var qualityReport: VideoQualityService.QualityReport?
 
     static let speedPresets: [Double] = [0.25, 0.5, 1.0, 2.0, 4.0]
 
