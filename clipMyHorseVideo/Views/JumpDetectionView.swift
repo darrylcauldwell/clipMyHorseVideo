@@ -6,19 +6,30 @@ struct JumpDetectionView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var detectionService = JumpDetectionService()
     @State private var sourceAsset: AVAsset?
+    @State private var errorMessage: String?
 
     var body: some View {
         VStack(spacing: 16) {
-            if sourceAsset == nil {
-                ProgressView("Loading video...")
-            } else if detectionService.isAnalysing {
-                // Step 2: Analysing
+            if let errorMessage {
                 VStack(spacing: 12) {
-                    ProgressView(value: detectionService.progress)
+                    Image(systemName: "exclamationmark.triangle")
+                        .font(.system(size: 48))
+                        .foregroundStyle(.secondary)
+                    Text(errorMessage)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 32)
+                }
+            } else if detectionService.isAnalysing || sourceAsset == nil {
+                VStack(spacing: 12) {
+                    ProgressView(value: sourceAsset == nil ? nil : detectionService.progress)
                         .progressViewStyle(.linear)
                         .padding(.horizontal, 48)
 
-                    Text("Analysing video... \(Int(detectionService.progress * 100))%")
+                    Text(sourceAsset == nil
+                         ? "Preparing video..."
+                         : "Analysing video... \(Int(detectionService.progress * 100))%")
                         .font(.headline)
                         .monospacedDigit()
 
@@ -27,7 +38,6 @@ struct JumpDetectionView: View {
                         .foregroundStyle(.secondary)
                 }
             } else if !detectionService.detectedJumps.isEmpty {
-                // Step 3: Review results
                 List {
                     ForEach(detectionService.detectedJumps) { jump in
                         HStack {
@@ -76,7 +86,10 @@ struct JumpDetectionView: View {
             }
         }
         .task {
-            guard let firstClip = clips.first else { return }
+            guard let firstClip = clips.first else {
+                errorMessage = "No clips loaded to analyse."
+                return
+            }
             sourceAsset = firstClip.asset
             await detectionService.analyse(asset: firstClip.asset)
         }
