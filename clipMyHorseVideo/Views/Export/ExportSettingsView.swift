@@ -12,6 +12,7 @@ struct ExportSettingsView: View {
     @State private var colourAdjustment: ColourAdjustment = .default
     @State private var backgroundMusic = BackgroundMusic()
     @State private var showMusicPicker = false
+    @State private var cropMode: CropMode = .centre
     @State private var stabilise = false
     @State private var stabilisationStrength: StabilisationStrength = .medium
     @State private var showProgress = false
@@ -77,6 +78,18 @@ struct ExportSettingsView: View {
                 Text(aspectRatio.description)
                     .font(.caption)
                     .foregroundStyle(.secondary)
+
+                if aspectRatio != .original {
+                    Picker("Crop Mode", selection: $cropMode) {
+                        ForEach(CropMode.allCases) { mode in
+                            Label(mode.rawValue, systemImage: mode.iconName).tag(mode)
+                        }
+                    }
+
+                    Text(cropMode.description)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
 
             Section("Background Music") {
