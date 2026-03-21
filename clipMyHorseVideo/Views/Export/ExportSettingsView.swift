@@ -12,6 +12,8 @@ struct ExportSettingsView: View {
     @State private var colourAdjustment: ColourAdjustment = .default
     @State private var backgroundMusic = BackgroundMusic()
     @State private var showMusicPicker = false
+    @State private var stabilise = false
+    @State private var stabilisationStrength: StabilisationStrength = .medium
     @State private var showProgress = false
 
     private var totalDurationTime: CMTime {
@@ -120,6 +122,27 @@ struct ExportSettingsView: View {
                     url.stopAccessingSecurityScopedResource()
                     backgroundMusic.url = dest
                     backgroundMusic.title = url.deletingPathExtension().lastPathComponent
+                }
+            }
+
+            Section("Stabilisation") {
+                Toggle("Stabilise Video", isOn: $stabilise)
+
+                if stabilise {
+                    Picker("Strength", selection: $stabilisationStrength) {
+                        ForEach(StabilisationStrength.allCases) { s in
+                            Text(s.rawValue).tag(s)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+
+                    Text(stabilisationStrength.description)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    Text("Stabilisation crops the frame slightly to allow for correction.")
+                        .font(.caption)
+                        .foregroundStyle(.orange)
                 }
             }
 
