@@ -1,46 +1,16 @@
 import AVKit
-import PhotosUI
 import SwiftUI
 
 struct JumpDetectionView: View {
     @Binding var clips: [Clip]
     @Environment(\.dismiss) private var dismiss
     @State private var detectionService = JumpDetectionService()
-    @State private var selectedItem: PhotosPickerItem?
     @State private var sourceAsset: AVAsset?
 
     var body: some View {
         VStack(spacing: 16) {
             if sourceAsset == nil {
-                // Step 1: Pick a long video
-                VStack(spacing: 12) {
-                    Image(systemName: "wand.and.stars")
-                        .font(.system(size: 48))
-                        .foregroundStyle(.secondary)
-
-                    Text("Auto-Detect Jumps")
-                        .font(.title3.bold())
-
-                    Text("Select a long recording and the app will find jump moments automatically.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 32)
-
-                    PhotosPicker(
-                        selection: $selectedItem,
-                        matching: .videos
-                    ) {
-                        Label("Choose Video", systemImage: "film")
-                            .font(.headline)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(.accent)
-                            .foregroundStyle(.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                    }
-                    .padding(.horizontal, 32)
-                }
+                ProgressView("Loading video...")
             } else if detectionService.isAnalysing {
                 // Step 2: Analysing
                 VStack(spacing: 12) {
@@ -105,17 +75,10 @@ struct JumpDetectionView: View {
                 Button("Cancel") { dismiss() }
             }
         }
-        .onChange(of: selectedItem) {
-            guard let item = selectedItem else { return }
-            Task {
-                do {
-                    let asset = try await PhotoLibraryService.loadAsset(from: item)
-                    sourceAsset = asset
-                    await detectionService.analyse(asset: asset)
-                } catch {
-                    Log.general.error("Failed to load video for jump detection: \(error.localizedDescription)")
-                }
-            }
+        .task {
+            guard let firstClip = clips.first else { return }
+            sourceAsset = firstClip.asset
+            await detectionService.analyse(asset: firstClip.asset)
         }
     }
 }
