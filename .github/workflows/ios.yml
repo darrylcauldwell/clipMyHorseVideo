@@ -6,8 +6,10 @@ on:
     paths:
       - 'clipMyHorseVideo/**'
       - 'Scripts/**'
+      - 'fastlane/**'
       - '.github/workflows/*.yml'
       - '.swiftlint.yml'
+      - 'Gemfile'
 
 jobs:
   validate:
