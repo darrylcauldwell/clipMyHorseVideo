@@ -1,0 +1,24 @@
+disabled_rules:
+  - trailing_comma
+  - todo
+  - cyclomatic_complexity
+  - function_body_length
+  - type_body_length
+  - file_length
+
+line_length:
+  warning: 200
+  error: 350
+
+identifier_name:
+  min_length: 1
+
+type_name:
+  allowed_symbols: ["_"]
+  validates_start_with_lowercase: warning
+
+included:
+  - clipMyHorseVideo
+
+excluded:
+  - clipMyHorseVideo/Preview Content

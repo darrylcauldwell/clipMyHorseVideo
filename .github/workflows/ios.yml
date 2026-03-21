@@ -1,0 +1,92 @@
+name: iOS CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'clipMyHorseVideo/**'
+      - 'Scripts/**'
+      - '.github/workflows/*.yml'
+      - '.swiftlint.yml'
+
+jobs:
+  validate:
+    name: Validate
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install SwiftLint
+        run: brew install swiftlint
+
+      - name: SwiftLint
+        run: swiftlint lint --strict --reporter github-actions-logging
+
+      - name: MARKETING_VERSION consistency
+        run: |
+          VERSIONS=$(grep 'MARKETING_VERSION' clipMyHorseVideo.xcodeproj/project.pbxproj | sed 's/.*= //' | sed 's/;.*//' | sort -u)
+          COUNT=$(echo "$VERSIONS" | wc -l | tr -d ' ')
+          if [ "$COUNT" -gt 1 ]; then
+            echo "::error::Multiple MARKETING_VERSION values found: $(echo $VERSIONS | tr '\n' ' ')"
+            exit 1
+          fi
+          echo "MARKETING_VERSION: $(echo "$VERSIONS" | head -1)"
+
+      - name: Validate metadata limits
+        run: ./Scripts/validate_metadata.sh
+
+  build:
+    name: Build
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        run: |
+          xcodebuild build \
+            -project clipMyHorseVideo.xcodeproj \
+            -scheme clipMyHorseVideo \
+            -destination 'generic/platform=iOS Simulator' \
+            -quiet
+
+  deploy:
+    name: Deploy to TestFlight
+    needs: [validate, build]
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      - name: Write API key
+        run: |
+          echo "${{ secrets.ASC_KEY_P8 }}" | base64 --decode > /tmp/AuthKey.p8
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+
+      - name: Install distribution certificate
+        run: |
+          KEYCHAIN_PASSWORD=$(openssl rand -base64 32)
+          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          echo "${{ secrets.DIST_CERT_P12_BASE64 }}" | base64 --decode > /tmp/cert.p12
+          security import /tmp/cert.p12 -k build.keychain -P "${{ secrets.DIST_CERT_PASSWORD }}" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
+
+      - name: Deploy to TestFlight
+        run: bundle exec fastlane beta
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_PATH: /tmp/AuthKey.p8
+
+      - name: Clean up
+        if: always()
+        run: |
+          rm -f /tmp/AuthKey.p8 /tmp/cert.p12
+          security delete-keychain build.keychain 2>/dev/null || true
