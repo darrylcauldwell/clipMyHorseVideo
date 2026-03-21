@@ -2,35 +2,36 @@ import AVFoundation
 import Photos
 import PhotosUI
 import SwiftUI
-import UniformTypeIdentifiers
-
-struct Movie: Transferable {
-    let url: URL
-
-    static var transferRepresentation: some TransferRepresentation {
-        FileRepresentation(contentType: .movie) { movie in
-            SentTransferredFile(movie.url)
-        } importing: { received in
-            let fileName = received.file.lastPathComponent
-            let dest = FileManager.default.temporaryDirectory
-                .appendingPathComponent(UUID().uuidString)
-                .appendingPathComponent(fileName)
-            try FileManager.default.createDirectory(
-                at: dest.deletingLastPathComponent(),
-                withIntermediateDirectories: true
-            )
-            try FileManager.default.copyItem(at: received.file, to: dest)
-            return Self(url: dest)
-        }
-    }
-}
 
 enum PhotoLibraryService {
     static func loadAsset(from item: PhotosPickerItem) async throws -> AVAsset {
-        guard let movie = try await item.loadTransferable(type: Movie.self) else {
+        guard let identifier = item.itemIdentifier else {
             throw PhotoLibraryError.failedToLoadVideo
         }
-        return AVAsset(url: movie.url)
+
+        let status = await PHPhotoLibrary.requestAuthorization(for: .readWrite)
+        guard status == .authorized || status == .limited else {
+            throw PhotoLibraryError.notAuthorized
+        }
+
+        let fetchResult = PHAsset.fetchAssets(withLocalIdentifiers: [identifier], options: nil)
+        guard let phAsset = fetchResult.firstObject else {
+            throw PhotoLibraryError.failedToLoadVideo
+        }
+
+        return try await withCheckedThrowingContinuation { continuation in
+            let options = PHVideoRequestOptions()
+            options.isNetworkAccessAllowed = true
+            options.deliveryMode = .highQualityFormat
+
+            PHImageManager.default().requestAVAsset(forVideo: phAsset, options: options) { avAsset, _, _ in
+                if let avAsset {
+                    continuation.resume(returning: avAsset)
+                } else {
+                    continuation.resume(throwing: PhotoLibraryError.failedToLoadVideo)
+                }
+            }
+        }
     }
 
     static func saveToPhotoLibrary(url: URL) async throws {
