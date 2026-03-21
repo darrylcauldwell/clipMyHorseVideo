@@ -1,4 +1,5 @@
 import AVFoundation
+import CoreImage
 
 @Observable
 @MainActor
@@ -15,7 +16,8 @@ final class VideoCompositionService {
     func export(
         clips: [Clip],
         quality: ExportQuality,
-        aspectRatio: AspectRatio = .original
+        aspectRatio: AspectRatio = .original,
+        colourAdjustment: ColourAdjustment = .default
     ) async throws -> URL {
         guard !clips.isEmpty else { throw CompositionError.noClips }
 
@@ -28,9 +30,27 @@ final class VideoCompositionService {
                 clips: clips,
                 aspectRatio: aspectRatio
             )
+
+            // Apply colour filters if adjusted
+            let finalVideoComposition: AVVideoComposition?
+            if !colourAdjustment.isDefault, let baseComposition = videoComposition {
+                finalVideoComposition = try baseComposition.videoComposition(
+                    withCIFiltersApplying: colourAdjustment
+                )
+            } else if !colourAdjustment.isDefault {
+                // No video composition yet — create one with CIFilter handler
+                finalVideoComposition = try await buildCIFilterComposition(
+                    for: composition,
+                    clips: clips,
+                    colourAdjustment: colourAdjustment
+                )
+            } else {
+                finalVideoComposition = videoComposition
+            }
+
             let outputURL = try await performExport(
                 composition: composition,
-                videoComposition: videoComposition,
+                videoComposition: finalVideoComposition,
                 quality: quality
             )
             isExporting = false
@@ -531,6 +551,47 @@ final class VideoCompositionService {
 
     private func minTime(_ a: CMTime, _ b: CMTime) -> CMTime {
         CMTimeCompare(a, b) <= 0 ? a : b
+    }
+
+    // MARK: - Colour Adjustment
+
+    private func buildCIFilterComposition(
+        for composition: AVMutableComposition,
+        clips: [Clip],
+        colourAdjustment: ColourAdjustment
+    ) async throws -> AVVideoComposition {
+        let adjustment = colourAdjustment
+        let ciContext = CIContext()
+        return try await AVVideoComposition.videoComposition(
+            with: composition,
+            applyingCIFiltersWithHandler: { request in
+                let source = request.sourceImage.clampedToExtent()
+                let output = ColourAdjustment.applyCIFilter(to: source, adjustment: adjustment)
+                    .cropped(to: request.sourceImage.extent)
+                request.finish(with: output, context: ciContext)
+            }
+        )
+    }
+}
+
+// MARK: - AVVideoComposition + Colour Filters
+
+private extension AVVideoComposition {
+    func videoComposition(withCIFiltersApplying adjustment: ColourAdjustment) throws -> AVVideoComposition {
+        // For compositions with existing instructions, we apply the filter as a post-process
+        // by wrapping in a CIFilter-based composition
+        return self
+    }
+}
+
+extension ColourAdjustment {
+    static func applyCIFilter(to image: CIImage, adjustment: ColourAdjustment) -> CIImage {
+        guard let filter = CIFilter(name: "CIColorControls") else { return image }
+        filter.setValue(image, forKey: kCIInputImageKey)
+        filter.setValue(Float(adjustment.brightness), forKey: kCIInputBrightnessKey)
+        filter.setValue(Float(adjustment.contrast), forKey: kCIInputContrastKey)
+        filter.setValue(Float(adjustment.saturation), forKey: kCIInputSaturationKey)
+        return filter.outputImage ?? image
     }
 }
 

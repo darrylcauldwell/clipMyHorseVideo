@@ -7,6 +7,7 @@ struct ExportSettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var quality: ExportQuality = .hd1080
     @State private var aspectRatio: AspectRatio = .original
+    @State private var colourAdjustment: ColourAdjustment = .default
     @State private var showProgress = false
 
     private var totalDurationTime: CMTime {
@@ -72,6 +73,42 @@ struct ExportSettingsView: View {
                     .foregroundStyle(.secondary)
             }
 
+            Section("Colour Adjustment") {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        Text("Brightness")
+                            .font(.caption)
+                        Slider(value: $colourAdjustment.brightness, in: -1.0...1.0)
+                        Text(String(format: "%.1f", colourAdjustment.brightness))
+                            .font(.caption.monospacedDigit())
+                            .frame(width: 36)
+                    }
+                    HStack {
+                        Text("Contrast")
+                            .font(.caption)
+                        Slider(value: $colourAdjustment.contrast, in: 0.5...2.0)
+                        Text(String(format: "%.1f", colourAdjustment.contrast))
+                            .font(.caption.monospacedDigit())
+                            .frame(width: 36)
+                    }
+                    HStack {
+                        Text("Saturation")
+                            .font(.caption)
+                        Slider(value: $colourAdjustment.saturation, in: 0.0...2.0)
+                        Text(String(format: "%.1f", colourAdjustment.saturation))
+                            .font(.caption.monospacedDigit())
+                            .frame(width: 36)
+                    }
+                }
+
+                if !colourAdjustment.isDefault {
+                    Button("Reset Colour") {
+                        colourAdjustment = .default
+                    }
+                    .foregroundStyle(.red)
+                }
+            }
+
             Section("Transitions") {
                 ForEach(TransitionStyle.allCases) { style in
                     Button {
@@ -110,7 +147,8 @@ struct ExportSettingsView: View {
                 ExportProgressView(
                     clips: clips,
                     quality: quality,
-                    aspectRatio: aspectRatio
+                    aspectRatio: aspectRatio,
+                    colourAdjustment: colourAdjustment
                 ) {
                     dismiss()
                     onComplete()
