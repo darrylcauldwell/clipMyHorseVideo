@@ -72,6 +72,19 @@ struct TimelineClipRow: View {
                             .foregroundStyle(.blue)
                             .clipShape(Capsule())
                     }
+
+                    if clip.sceneType != .unknown {
+                        Label(clip.sceneType.rawValue, systemImage: clip.sceneType.iconName)
+                            .font(.caption2)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(clip.sceneType.colour.opacity(0.2))
+                            .foregroundStyle(clip.sceneType.colour)
+                            .clipShape(Capsule())
+                    } else if clip.isClassifying {
+                        ProgressView()
+                            .controlSize(.mini)
+                    }
                 }
             }
 

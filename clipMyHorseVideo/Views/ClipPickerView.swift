@@ -101,7 +101,10 @@ struct ClipPickerView: View {
             loadError = "No clips could be loaded. Try different videos."
         } else {
             clips = loadedClips
+            for clip in loadedClips { clip.isClassifying = true }
             await ThumbnailService.generateThumbnails(for: loadedClips)
+            // Classify scenes in background
+            Task { await SceneClassificationService.classifyAll(loadedClips) }
         }
 
         selectedItems = []

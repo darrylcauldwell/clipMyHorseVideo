@@ -21,6 +21,8 @@ final class Clip: Identifiable {
     var transitionAfter: TransitionStyle = .none
     var playbackSpeed: Double = 1.0
     var audioSpeedMode: AudioSpeedMode = .pitchCorrected
+    var sceneType: SceneType = .unknown
+    var isClassifying: Bool = false
 
     static let speedPresets: [Double] = [0.25, 0.5, 1.0, 2.0, 4.0]
 

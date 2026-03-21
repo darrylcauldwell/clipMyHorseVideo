@@ -213,7 +213,9 @@ struct TimelineView: View {
         }
 
         clips.append(contentsOf: newClips)
+        for clip in newClips { clip.isClassifying = true }
         await ThumbnailService.generateThumbnails(for: newClips)
+        Task { await SceneClassificationService.classifyAll(newClips) }
 
         additionalItems = []
     }
