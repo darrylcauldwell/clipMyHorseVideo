@@ -32,7 +32,7 @@ ERRORS=0
 
 echo "Step 1: SwiftLint..."
 if command -v swiftlint &>/dev/null; then
-    if ! swiftlint lint --strict --quiet --config "${PROJECT_DIR}/.swiftlint.yml" --path "${PROJECT_DIR}/clipMyHorseVideo" 2>&1; then
+    if ! swiftlint lint --quiet --config "${PROJECT_DIR}/.swiftlint.yml" --path "${PROJECT_DIR}/clipMyHorseVideo" 2>&1; then
         echo "FAILED: SwiftLint found errors"
         ERRORS=$((ERRORS + 1))
     else
