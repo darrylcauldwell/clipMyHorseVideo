@@ -10,7 +10,22 @@ platform :ios do
       in_house: false
     )
 
-    build_number = latest_testflight_build_number(api_key: api_key) + 1
+    # Create app on ASC if it doesn't exist yet
+    create_app_online(
+      app_identifier: "dev.dreamfold.clipMyHorseVideo",
+      app_name: "clipMyHorseVideo",
+      language: "en-GB",
+      sku: "dev.dreamfold.clipMyHorseVideo",
+      skip_devcenter: true,
+      api_key: api_key
+    )
+
+    begin
+      build_number = latest_testflight_build_number(api_key: api_key) + 1
+    rescue => e
+      UI.message("No existing builds found, starting at 1: #{e.message}")
+      build_number = 1
+    end
 
     increment_build_number(
       build_number: build_number,
