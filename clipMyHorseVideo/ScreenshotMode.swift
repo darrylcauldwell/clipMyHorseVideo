@@ -30,16 +30,8 @@ enum ScreenshotMode {
             let clip = Clip.placeholder(duration: duration)
             clip.thumbnail = solidImage(colour: colour, size: CGSize(width: 320, height: 180), label: label)
 
-            // Vary transitions for visual interest
-            switch index {
-            case 0: clip.transitionAfter = .crossfade
-            case 1: clip.transitionAfter = .wipe
-            case 2: clip.transitionAfter = .slide
-            case 3: clip.transitionAfter = .fadeToBlack
-            default: clip.transitionAfter = .none
-            }
-
-            clip.sceneType = index < 2 ? .outdoorCourse : .indoorArena
+            // Alternate transitions for visual interest
+            clip.transitionAfter = index % 2 == 0 ? .crossfade : .none
             return clip
         }
     }

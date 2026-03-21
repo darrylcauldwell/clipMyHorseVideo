@@ -4,7 +4,7 @@ struct TimelineClipRow: View {
     let clip: Clip
     let index: Int
 
-    @State private var shimmerOffset: CGFloat = -80
+    @State private var shimmerOffset: CGFloat = -96
 
     var body: some View {
         HStack(spacing: 12) {
@@ -12,13 +12,13 @@ struct TimelineClipRow: View {
                 Image(uiImage: thumbnail)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-                    .frame(width: 80, height: 45)
+                    .frame(width: 96, height: 54)
                     .clipShape(RoundedRectangle(cornerRadius: 6))
                     .transition(.opacity.combined(with: .scale(scale: 0.95)))
             } else {
                 RoundedRectangle(cornerRadius: 6)
                     .fill(.quaternary)
-                    .frame(width: 80, height: 45)
+                    .frame(width: 96, height: 54)
                     .overlay {
                         LinearGradient(
                             colors: [.clear, .white.opacity(0.3), .clear],
@@ -34,12 +34,12 @@ struct TimelineClipRow: View {
                             .foregroundStyle(.secondary)
                     }
                     .onAppear {
-                        shimmerOffset = -80
+                        shimmerOffset = -96
                         withAnimation(
                             .linear(duration: 1.5)
                             .repeatForever(autoreverses: false)
                         ) {
-                            shimmerOffset = 80
+                            shimmerOffset = 96
                         }
                     }
             }
@@ -48,44 +48,9 @@ struct TimelineClipRow: View {
                 Text("Clip \(index + 1)")
                     .font(.headline)
 
-                HStack(spacing: 8) {
-                    Label(clip.speedAdjustedDuration.formattedDuration, systemImage: "clock")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-
-                    if clip.trimStart != .zero || clip.trimEnd != clip.originalDuration {
-                        Text("Trimmed")
-                            .font(.caption2)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(.orange.opacity(0.2))
-                            .foregroundStyle(.orange)
-                            .clipShape(Capsule())
-                    }
-
-                    if clip.playbackSpeed != 1.0 {
-                        Text(clip.speedLabel)
-                            .font(.caption2)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(.blue.opacity(0.2))
-                            .foregroundStyle(.blue)
-                            .clipShape(Capsule())
-                    }
-
-                    if clip.sceneType != .unknown {
-                        Label(clip.sceneType.rawValue, systemImage: clip.sceneType.iconName)
-                            .font(.caption2)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(clip.sceneType.colour.opacity(0.2))
-                            .foregroundStyle(clip.sceneType.colour)
-                            .clipShape(Capsule())
-                    } else if clip.isClassifying {
-                        ProgressView()
-                            .controlSize(.mini)
-                    }
-                }
+                Text(clip.speedAdjustedDuration.formattedDuration)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
             }
 
             Spacer()
@@ -95,10 +60,7 @@ struct TimelineClipRow: View {
                     .foregroundStyle(.yellow)
                     .help(report.warnings.map(\.message).joined(separator: "\n"))
             }
-
-            Image(systemName: "line.3.horizontal")
-                .foregroundStyle(.tertiary)
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 8)
     }
 }

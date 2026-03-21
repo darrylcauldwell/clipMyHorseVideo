@@ -21,8 +21,6 @@ final class Clip: Identifiable {
     var transitionAfter: TransitionStyle = .none
     var playbackSpeed: Double = 1.0
     var audioSpeedMode: AudioSpeedMode = .pitchCorrected
-    var sceneType: SceneType = .unknown
-    var isClassifying: Bool = false
     var qualityReport: VideoQualityService.QualityReport?
     var announcerInfo: AnnouncerInfo?
 

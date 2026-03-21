@@ -35,7 +35,7 @@ struct JumpDetectionView: View {
                             .font(.headline)
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(.blue)
+                            .background(.accent)
                             .foregroundStyle(.white)
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
@@ -87,7 +87,7 @@ struct JumpDetectionView: View {
                     .disabled(acceptedCount == 0)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(acceptedCount > 0 ? .blue : .secondary.opacity(0.2))
+                    .background(acceptedCount > 0 ? .accent : .secondary.opacity(0.2))
                     .foregroundStyle(.white)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                 }

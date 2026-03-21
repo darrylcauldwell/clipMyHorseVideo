@@ -8,6 +8,7 @@ struct TimelineView: View {
     @State private var showExportSettings = false
     @State private var showPreview = false
     @State private var showTextEditor = false
+    @State private var showJumpDetection = false
     @State private var clipForTranscription: Clip?
     @State private var additionalItems: [PhotosPickerItem] = []
 
@@ -23,14 +24,6 @@ struct TimelineView: View {
     var body: some View {
         ZStack(alignment: .bottom) {
             List {
-                // Mini timeline strip
-                if clips.count > 1 {
-                    Section {
-                        MiniTimelineStrip(clips: clips)
-                            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-                    }
-                }
-
                 Section {
                     ForEach(Array(clips.enumerated()), id: \.element.id) { index, clip in
                         VStack(spacing: 0) {
@@ -45,15 +38,6 @@ struct TimelineView: View {
                                     } label: {
                                         Label("Scan Audio", systemImage: "waveform.and.mic")
                                     }
-                                    if clip.sceneType != .unknown {
-                                        Menu("Change Scene") {
-                                            ForEach(SceneType.allCases) { scene in
-                                                Button(scene.rawValue) {
-                                                    clip.sceneType = scene
-                                                }
-                                            }
-                                        }
-                                    }
                                 }
 
                             // Transition indicator between clips
@@ -67,7 +51,7 @@ struct TimelineView: View {
                 } header: {
                     Text("\(clips.count) clip\(clips.count == 1 ? "" : "s")")
                 } footer: {
-                    Text("Tap a clip to trim. Drag to reorder. Swipe to delete.")
+                    Text("Tap to trim. Long press to reorder. Swipe to delete.")
                         .font(.caption)
                 }
             }
@@ -75,9 +59,6 @@ struct TimelineView: View {
             .sensoryFeedback(.selection, trigger: reorderTrigger)
             .navigationTitle("Timeline")
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    EditButton()
-                }
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     Button {
                         showPreview = true
@@ -86,15 +67,25 @@ struct TimelineView: View {
                     }
                     .disabled(clips.isEmpty)
 
-                    Button {
-                        let overlay = TextOverlay()
-                        textOverlays.append(overlay)
-                        showTextEditor = true
-                    } label: {
-                        Image(systemName: "textformat")
-                    }
+                    Menu {
+                        addClipsButton
 
-                    addClipsButton
+                        Button {
+                            showJumpDetection = true
+                        } label: {
+                            Label("Auto-Detect Jumps", systemImage: "wand.and.stars")
+                        }
+
+                        Button {
+                            let overlay = TextOverlay()
+                            textOverlays.append(overlay)
+                            showTextEditor = true
+                        } label: {
+                            Label("Text Overlay", systemImage: "textformat")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                    }
 
                     Button("Export") {
                         showExportSettings = true
@@ -119,6 +110,11 @@ struct TimelineView: View {
                     NavigationStack {
                         TextOverlayEditorView(overlay: overlay)
                     }
+                }
+            }
+            .sheet(isPresented: $showJumpDetection) {
+                NavigationStack {
+                    JumpDetectionView(clips: $clips)
                 }
             }
             .sheet(isPresented: $showExportSettings) {
@@ -171,7 +167,7 @@ struct TimelineView: View {
             maxSelectionCount: 20,
             matching: .videos
         ) {
-            Image(systemName: "plus")
+            Label("Add More Clips", systemImage: "plus")
         }
     }
 
@@ -256,9 +252,7 @@ struct TimelineView: View {
         }
 
         clips.append(contentsOf: newClips)
-        for clip in newClips { clip.isClassifying = true }
         await ThumbnailService.generateThumbnails(for: newClips)
-        Task { await SceneClassificationService.classifyAll(newClips) }
 
         additionalItems = []
     }
@@ -277,61 +271,16 @@ private struct TransitionIndicator: View {
                 clip.transitionAfter = nextIndex < allCases.endIndex ? allCases[nextIndex] : allCases[allCases.startIndex]
             }
         } label: {
-            HStack(spacing: 6) {
+            HStack(spacing: 4) {
                 Image(systemName: clip.transitionAfter.iconName)
                     .font(.caption2)
                 Text(clip.transitionAfter.rawValue)
                     .font(.caption2)
             }
-            .foregroundStyle(.secondary)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 4)
-            .background(.quaternary, in: Capsule())
+            .foregroundStyle(.tertiary)
         }
         .buttonStyle(.plain)
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 4)
-    }
-}
-
-// MARK: - Mini Timeline Strip
-
-private struct MiniTimelineStrip: View {
-    let clips: [Clip]
-
-    private var totalDuration: Double {
-        clips.reduce(0) { $0 + $1.speedAdjustedDuration.seconds }
-    }
-
-    var body: some View {
-        GeometryReader { geometry in
-            HStack(spacing: 2) {
-                ForEach(Array(clips.enumerated()), id: \.element.id) { index, clip in
-                    let fraction = totalDuration > 0 ? clip.speedAdjustedDuration.seconds / totalDuration : 1.0 / Double(clips.count)
-                    let width = max(30, fraction * (geometry.size.width - CGFloat(clips.count - 1) * 2))
-
-                    ZStack {
-                        if let thumbnail = clip.thumbnail {
-                            Image(uiImage: thumbnail)
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: width, height: 40)
-                                .clipped()
-                        } else {
-                            Rectangle()
-                                .fill(.quaternary)
-                        }
-
-                        Text("\(index + 1)")
-                            .font(.caption2.bold())
-                            .foregroundStyle(.white)
-                            .shadow(radius: 2)
-                    }
-                    .frame(width: width, height: 40)
-                    .clipShape(RoundedRectangle(cornerRadius: 4))
-                }
-            }
-        }
-        .frame(height: 40)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, 2)
     }
 }

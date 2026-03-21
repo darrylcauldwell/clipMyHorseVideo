@@ -364,27 +364,8 @@ final class VideoCompositionService {
         renderSize: CGSize,
         cropTransform: CGAffineTransform?
     ) -> AVVideoCompositionInstruction {
-        switch style {
-        case .none:
-            // Should not reach here, but handle gracefully
-            return buildCrossfadeInstruction(currentTrack: currentTrack, nextTrack: nextTrack, overlapRange: overlapRange, cropTransform: cropTransform)
-        case .crossfade:
-            return buildCrossfadeInstruction(currentTrack: currentTrack, nextTrack: nextTrack, overlapRange: overlapRange, cropTransform: cropTransform)
-        case .wipe:
-            return buildWipeInstruction(currentTrack: currentTrack, nextTrack: nextTrack, overlapRange: overlapRange, renderSize: renderSize, cropTransform: cropTransform)
-        case .slide:
-            return buildSlideInstruction(currentTrack: currentTrack, nextTrack: nextTrack, overlapRange: overlapRange, renderSize: renderSize, cropTransform: cropTransform)
-        case .fadeToBlack:
-            return buildFadeToBlackInstruction(currentTrack: currentTrack, nextTrack: nextTrack, overlapRange: overlapRange, cropTransform: cropTransform)
-        }
-    }
-
-    private func buildCrossfadeInstruction(
-        currentTrack: AVMutableCompositionTrack,
-        nextTrack: AVMutableCompositionTrack,
-        overlapRange: CMTimeRange,
-        cropTransform: CGAffineTransform?
-    ) -> AVVideoCompositionInstruction {
+        // Both .none and .crossfade use the same crossfade instruction
+        // (.none should not reach here, but handle gracefully)
         var fadeOutConfig = AVVideoCompositionLayerInstruction.Configuration(assetTrack: currentTrack)
         fadeOutConfig.addOpacityRamp(.init(timeRange: overlapRange, start: 1.0, end: 0.0))
         if let cropTransform { fadeOutConfig.setTransform(cropTransform, at: overlapRange.start) }
@@ -398,112 +379,6 @@ final class VideoCompositionService {
                 layerInstructions: [
                     AVVideoCompositionLayerInstruction(configuration: fadeOutConfig),
                     AVVideoCompositionLayerInstruction(configuration: fadeInConfig),
-                ],
-                timeRange: overlapRange
-            )
-        )
-    }
-
-    private func buildWipeInstruction(
-        currentTrack: AVMutableCompositionTrack,
-        nextTrack: AVMutableCompositionTrack,
-        overlapRange: CMTimeRange,
-        renderSize: CGSize,
-        cropTransform: CGAffineTransform?
-    ) -> AVVideoCompositionInstruction {
-        // Wipe: current clip's crop rect shrinks from right, revealing next clip behind
-        var currentConfig = AVVideoCompositionLayerInstruction.Configuration(assetTrack: currentTrack)
-        currentConfig.addCropRectangleRamp(
-            .init(
-                timeRange: overlapRange,
-                start: CGRect(origin: .zero, size: renderSize),
-                end: CGRect(x: 0, y: 0, width: 0, height: renderSize.height)
-            )
-        )
-        if let cropTransform { currentConfig.setTransform(cropTransform, at: overlapRange.start) }
-
-        var nextConfig = AVVideoCompositionLayerInstruction.Configuration(assetTrack: nextTrack)
-        nextConfig.setOpacity(1.0, at: overlapRange.start)
-        if let cropTransform { nextConfig.setTransform(cropTransform, at: overlapRange.start) }
-
-        return AVVideoCompositionInstruction(
-            configuration: .init(
-                layerInstructions: [
-                    AVVideoCompositionLayerInstruction(configuration: currentConfig),
-                    AVVideoCompositionLayerInstruction(configuration: nextConfig),
-                ],
-                timeRange: overlapRange
-            )
-        )
-    }
-
-    private func buildSlideInstruction(
-        currentTrack: AVMutableCompositionTrack,
-        nextTrack: AVMutableCompositionTrack,
-        overlapRange: CMTimeRange,
-        renderSize: CGSize,
-        cropTransform: CGAffineTransform?
-    ) -> AVVideoCompositionInstruction {
-        let baseTransform = cropTransform ?? .identity
-
-        // Current clip slides out to the left
-        var currentConfig = AVVideoCompositionLayerInstruction.Configuration(assetTrack: currentTrack)
-        currentConfig.addTransformRamp(
-            .init(
-                timeRange: overlapRange,
-                start: baseTransform,
-                end: baseTransform.translatedBy(x: -renderSize.width, y: 0)
-            )
-        )
-
-        // Next clip slides in from the right
-        var nextConfig = AVVideoCompositionLayerInstruction.Configuration(assetTrack: nextTrack)
-        nextConfig.addTransformRamp(
-            .init(
-                timeRange: overlapRange,
-                start: baseTransform.translatedBy(x: renderSize.width, y: 0),
-                end: baseTransform
-            )
-        )
-
-        return AVVideoCompositionInstruction(
-            configuration: .init(
-                layerInstructions: [
-                    AVVideoCompositionLayerInstruction(configuration: currentConfig),
-                    AVVideoCompositionLayerInstruction(configuration: nextConfig),
-                ],
-                timeRange: overlapRange
-            )
-        )
-    }
-
-    private func buildFadeToBlackInstruction(
-        currentTrack: AVMutableCompositionTrack,
-        nextTrack: AVMutableCompositionTrack,
-        overlapRange: CMTimeRange,
-        cropTransform: CGAffineTransform?
-    ) -> AVVideoCompositionInstruction {
-        let midpoint = CMTimeAdd(overlapRange.start, CMTimeMultiplyByFloat64(overlapRange.duration, multiplier: 0.5))
-        let firstHalf = CMTimeRange(start: overlapRange.start, end: midpoint)
-        let secondHalf = CMTimeRange(start: midpoint, end: CMTimeAdd(overlapRange.start, overlapRange.duration))
-
-        // Current clip fades to black (opacity 1→0), next stays hidden
-        var currentConfig = AVVideoCompositionLayerInstruction.Configuration(assetTrack: currentTrack)
-        currentConfig.addOpacityRamp(.init(timeRange: firstHalf, start: 1.0, end: 0.0))
-        currentConfig.setOpacity(0.0, at: midpoint)
-        if let cropTransform { currentConfig.setTransform(cropTransform, at: overlapRange.start) }
-
-        // Next clip fades from black (opacity 0→1)
-        var nextConfig = AVVideoCompositionLayerInstruction.Configuration(assetTrack: nextTrack)
-        nextConfig.setOpacity(0.0, at: overlapRange.start)
-        nextConfig.addOpacityRamp(.init(timeRange: secondHalf, start: 0.0, end: 1.0))
-        if let cropTransform { nextConfig.setTransform(cropTransform, at: overlapRange.start) }
-
-        return AVVideoCompositionInstruction(
-            configuration: .init(
-                layerInstructions: [
-                    AVVideoCompositionLayerInstruction(configuration: currentConfig),
-                    AVVideoCompositionLayerInstruction(configuration: nextConfig),
                 ],
                 timeRange: overlapRange
             )

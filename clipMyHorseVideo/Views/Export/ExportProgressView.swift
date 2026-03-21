@@ -15,10 +15,11 @@ struct ExportProgressView: View {
     @State private var exportedFileURL: URL?
     @State private var exportCompleteTrigger = 0
 
+    @State private var savedToPhotos = false
+
     enum ExportState {
         case preparing
         case exporting
-        case saving
         case completed
         case failed
     }
@@ -42,19 +43,13 @@ struct ExportProgressView: View {
                     .font(.headline)
                     .monospacedDigit()
 
-            case .saving:
-                ProgressView()
-                    .scaleEffect(1.5)
-                Text("Saving to Photos...")
-                    .font(.headline)
-
             case .completed:
                 Image(systemName: "checkmark.circle.fill")
                     .font(.system(size: 64))
-                    .foregroundStyle(.green)
-                Text("Video Saved!")
+                    .foregroundStyle(.accent)
+                Text("Export Complete!")
                     .font(.title2.bold())
-                Text("Your merged video has been saved to your photo library.")
+                Text("Your video is ready to share.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -92,6 +87,22 @@ struct ExportProgressView: View {
                         }
                         .buttonStyle(.borderedProminent)
                         .padding(.horizontal, 32)
+
+                        Button {
+                            Task { await saveToPhotos(url: exportedFileURL) }
+                        } label: {
+                            Label(
+                                savedToPhotos ? "Saved to Photos" : "Save to Photos",
+                                systemImage: savedToPhotos ? "checkmark" : "photo.on.rectangle"
+                            )
+                            .font(.headline)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(.secondary.opacity(0.2))
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                        }
+                        .disabled(savedToPhotos)
+                        .padding(.horizontal, 32)
                     }
 
                     Button {
@@ -122,7 +133,7 @@ struct ExportProgressView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(.blue)
+                    .background(.accent)
                     .foregroundStyle(.white)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
@@ -139,7 +150,7 @@ struct ExportProgressView: View {
                 }
             }
         }
-        .interactiveDismissDisabled(exportState == .exporting || exportState == .saving)
+        .interactiveDismissDisabled(exportState == .exporting)
         .sensoryFeedback(.success, trigger: exportCompleteTrigger)
         .onDisappear { cleanUpExportedFile() }
         .task { await startExport() }
@@ -160,10 +171,6 @@ struct ExportProgressView: View {
                 textOverlays: textOverlays
             )
 
-            exportState = .saving
-            try await PhotoLibraryService.saveToPhotoLibrary(url: outputURL)
-
-            // Keep temp file for sharing; cleaned up when user taps Done or view disappears
             exportedFileURL = outputURL
 
             withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
@@ -174,6 +181,15 @@ struct ExportProgressView: View {
             errorMessage = error.localizedDescription
             exportState = .failed
             Log.export.error("Export pipeline failed: \(error.localizedDescription)")
+        }
+    }
+
+    private func saveToPhotos(url: URL) async {
+        do {
+            try await PhotoLibraryService.saveToPhotoLibrary(url: url)
+            savedToPhotos = true
+        } catch {
+            Log.export.error("Save to Photos failed: \(error.localizedDescription)")
         }
     }
 

@@ -71,7 +71,7 @@ struct TrimEditorView: View {
                                     .font(.caption.bold())
                                     .padding(.horizontal, 10)
                                     .padding(.vertical, 6)
-                                    .background(clip.playbackSpeed == speed ? .blue : .secondary.opacity(0.2))
+                                    .background(clip.playbackSpeed == speed ? .accent : .secondary.opacity(0.2))
                                     .foregroundStyle(clip.playbackSpeed == speed ? .white : .primary)
                                     .clipShape(Capsule())
                             }

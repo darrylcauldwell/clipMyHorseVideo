@@ -45,6 +45,32 @@ struct ExportSettingsView: View {
 
     var body: some View {
         Form {
+            Section("Quick Export") {
+                Button {
+                    quality = .hd1080
+                    aspectRatio = .original
+                    for clip in clips { clip.transitionAfter = .none }
+                    showProgress = true
+                } label: {
+                    Label("Quick Export", systemImage: "bolt.fill")
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
+                Button {
+                    quality = .hd1080
+                    aspectRatio = .portrait9x16
+                    for clip in clips { clip.transitionAfter = .crossfade }
+                    showProgress = true
+                } label: {
+                    Label("Optimised for TikTok", systemImage: "sparkles")
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
+                Text("Or customise settings below.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
             Section("Summary") {
                 LabeledContent("Clips", value: "\(clips.count)")
                 LabeledContent("Est. Duration", value: totalDuration)
