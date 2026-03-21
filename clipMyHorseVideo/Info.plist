@@ -8,5 +8,9 @@
 	<string>clipMyHorseVideo</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>clipMyHorseVideo needs permission to save your merged video to your photo library.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>clipMyHorseVideo uses speech recognition to transcribe competition announcer audio and auto-label your clips.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>clipMyHorseVideo may need microphone access for speech recognition.</string>
 </dict>
 </plist>

@@ -8,6 +8,7 @@ struct TimelineView: View {
     @State private var showExportSettings = false
     @State private var showPreview = false
     @State private var showTextEditor = false
+    @State private var clipForTranscription: Clip?
     @State private var additionalItems: [PhotosPickerItem] = []
 
     // Undo delete state
@@ -37,6 +38,22 @@ struct TimelineView: View {
                                 .contentShape(Rectangle())
                                 .onTapGesture {
                                     selectedClipForTrim = clip
+                                }
+                                .contextMenu {
+                                    Button {
+                                        Task { await transcribeClip(clip) }
+                                    } label: {
+                                        Label("Scan Audio", systemImage: "waveform.and.mic")
+                                    }
+                                    if clip.sceneType != .unknown {
+                                        Menu("Change Scene") {
+                                            ForEach(SceneType.allCases) { scene in
+                                                Button(scene.rawValue) {
+                                                    clip.sceneType = scene
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
 
                             // Transition indicator between clips
@@ -88,6 +105,13 @@ struct TimelineView: View {
             .sheet(item: $selectedClipForTrim) { clip in
                 NavigationStack {
                     TrimEditorView(clip: clip)
+                }
+            }
+            .sheet(item: $clipForTranscription) { clip in
+                if let info = clip.announcerInfo {
+                    NavigationStack {
+                        TranscriptionResultView(info: info)
+                    }
                 }
             }
             .sheet(isPresented: $showTextEditor) {
@@ -194,6 +218,25 @@ struct TimelineView: View {
     private func moveClips(from source: IndexSet, to destination: Int) {
         clips.move(fromOffsets: source, toOffset: destination)
         reorderTrigger += 1
+    }
+
+    private func transcribeClip(_ clip: Clip) async {
+        let info = AnnouncerInfo()
+        info.isTranscribing = true
+        clip.announcerInfo = info
+
+        do {
+            let transcript = try await TranscriptionService.transcribe(
+                asset: clip.asset,
+                timeRange: clip.trimmedTimeRange
+            )
+            let extracted = TranscriptionService.extractAnnouncerInfo(from: transcript)
+            clip.announcerInfo = extracted
+            clipForTranscription = clip
+        } catch {
+            Log.transcription.error("Transcription failed: \(error.localizedDescription)")
+            info.isTranscribing = false
+        }
     }
 
     private func loadAdditionalVideos() async {
