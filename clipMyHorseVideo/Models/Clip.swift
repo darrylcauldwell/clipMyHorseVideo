@@ -50,4 +50,10 @@ final class Clip: Identifiable {
         self.trimStart = .zero
         self.trimEnd = duration
     }
+
+    /// Create a placeholder clip for screenshot mode (no real asset).
+    static func placeholder(duration: CMTime) -> Clip {
+        let asset = AVAsset()
+        return Clip(asset: asset, duration: duration)
+    }
 }
