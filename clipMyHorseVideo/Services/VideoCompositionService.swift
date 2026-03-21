@@ -93,11 +93,18 @@ final class VideoCompositionService {
                 try videoTrack.insertTimeRange(timeRange, of: sourceVideoTrack, at: insertionTime)
             }
 
-            if let sourceAudioTrack = try await clip.asset.loadTracks(withMediaType: .audio).first {
+            if clip.audioSpeedMode != .muted,
+               let sourceAudioTrack = try await clip.asset.loadTracks(withMediaType: .audio).first {
                 try audioTrack?.insertTimeRange(timeRange, of: sourceAudioTrack, at: insertionTime)
             }
 
-            insertionTime = CMTimeAdd(insertionTime, clip.trimmedDuration)
+            // Apply speed change
+            if clip.playbackSpeed != 1.0 {
+                let insertedRange = CMTimeRange(start: insertionTime, duration: clip.trimmedDuration)
+                composition.scaleTimeRange(insertedRange, toDuration: clip.speedAdjustedDuration)
+            }
+
+            insertionTime = CMTimeAdd(insertionTime, clip.speedAdjustedDuration)
         }
 
         Log.composition.info("Sequential composition built: \(clips.count) clips")
@@ -164,18 +171,26 @@ final class VideoCompositionService {
             if let sourceVideo = try await clip.asset.loadTracks(withMediaType: .video).first {
                 try videoTrack.insertTimeRange(timeRange, of: sourceVideo, at: insertionTime)
             }
-            if let sourceAudio = try await clip.asset.loadTracks(withMediaType: .audio).first {
+            if clip.audioSpeedMode != .muted,
+               let sourceAudio = try await clip.asset.loadTracks(withMediaType: .audio).first {
                 try audioTrack?.insertTimeRange(timeRange, of: sourceAudio, at: insertionTime)
             }
 
-            let compositionTimeRange = CMTimeRange(start: insertionTime, duration: clip.trimmedDuration)
+            // Apply speed change
+            if clip.playbackSpeed != 1.0 {
+                let insertedRange = CMTimeRange(start: insertionTime, duration: clip.trimmedDuration)
+                composition.scaleTimeRange(insertedRange, toDuration: clip.speedAdjustedDuration)
+            }
+
+            let effectiveDuration = clip.speedAdjustedDuration
+            let compositionTimeRange = CMTimeRange(start: insertionTime, duration: effectiveDuration)
             clipTimeRanges.append((track: videoTrack, timeRange: compositionTimeRange, transition: clip.transitionAfter))
 
             if index < clips.count - 1 && clip.transitionAfter != .none {
                 let overlap = transitionDuration(for: clip.transitionAfter)
-                insertionTime = CMTimeAdd(insertionTime, CMTimeSubtract(clip.trimmedDuration, overlap))
+                insertionTime = CMTimeAdd(insertionTime, CMTimeSubtract(effectiveDuration, overlap))
             } else {
-                insertionTime = CMTimeAdd(insertionTime, clip.trimmedDuration)
+                insertionTime = CMTimeAdd(insertionTime, effectiveDuration)
             }
         }
 

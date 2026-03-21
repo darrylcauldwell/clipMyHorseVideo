@@ -12,7 +12,7 @@ struct ExportSettingsView: View {
     private var totalDurationTime: CMTime {
         var total = CMTime.zero
         for clip in clips {
-            total = CMTimeAdd(total, clip.trimmedDuration)
+            total = CMTimeAdd(total, clip.speedAdjustedDuration)
         }
         // Subtract overlap for each transition boundary
         for clip in clips.dropLast() where clip.transitionAfter != .none {

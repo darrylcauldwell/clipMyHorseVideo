@@ -49,7 +49,7 @@ struct TimelineClipRow: View {
                     .font(.headline)
 
                 HStack(spacing: 8) {
-                    Label(clip.trimmedDuration.formattedDuration, systemImage: "clock")
+                    Label(clip.speedAdjustedDuration.formattedDuration, systemImage: "clock")
                         .font(.caption)
                         .foregroundStyle(.secondary)
 
@@ -60,6 +60,16 @@ struct TimelineClipRow: View {
                             .padding(.vertical, 2)
                             .background(.orange.opacity(0.2))
                             .foregroundStyle(.orange)
+                            .clipShape(Capsule())
+                    }
+
+                    if clip.playbackSpeed != 1.0 {
+                        Text(clip.speedLabel)
+                            .font(.caption2)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(.blue.opacity(0.2))
+                            .foregroundStyle(.blue)
                             .clipShape(Capsule())
                     }
                 }

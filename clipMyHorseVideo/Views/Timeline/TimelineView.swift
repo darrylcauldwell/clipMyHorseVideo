@@ -237,14 +237,14 @@ private struct MiniTimelineStrip: View {
     let clips: [Clip]
 
     private var totalDuration: Double {
-        clips.reduce(0) { $0 + $1.trimmedDuration.seconds }
+        clips.reduce(0) { $0 + $1.speedAdjustedDuration.seconds }
     }
 
     var body: some View {
         GeometryReader { geometry in
             HStack(spacing: 2) {
                 ForEach(Array(clips.enumerated()), id: \.element.id) { index, clip in
-                    let fraction = totalDuration > 0 ? clip.trimmedDuration.seconds / totalDuration : 1.0 / Double(clips.count)
+                    let fraction = totalDuration > 0 ? clip.speedAdjustedDuration.seconds / totalDuration : 1.0 / Double(clips.count)
                     let width = max(30, fraction * (geometry.size.width - CGFloat(clips.count - 1) * 2))
 
                     ZStack {

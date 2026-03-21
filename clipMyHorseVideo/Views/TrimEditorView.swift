@@ -44,7 +44,7 @@ struct TrimEditorView: View {
                 // Duration info
                 HStack {
                     Label("Keeping", systemImage: "scissors")
-                    Text(clip.trimmedDuration.formattedDuration)
+                    Text(clip.speedAdjustedDuration.formattedDuration)
                         .monospacedDigit()
                         .fontWeight(.medium)
                     Spacer()
@@ -53,6 +53,41 @@ struct TrimEditorView: View {
                 }
                 .font(.caption)
                 .foregroundStyle(.secondary)
+                .padding(.horizontal, 24)
+
+                // Speed control
+                VStack(spacing: 8) {
+                    Text("Speed")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    HStack(spacing: 8) {
+                        ForEach(Clip.speedPresets, id: \.self) { speed in
+                            Button {
+                                clip.playbackSpeed = speed
+                                player?.rate = Float(speed)
+                            } label: {
+                                Text(speed.truncatingRemainder(dividingBy: 1) == 0 ? String(format: "%.0fx", speed) : "\(speed)x")
+                                    .font(.caption.bold())
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 6)
+                                    .background(clip.playbackSpeed == speed ? .blue : .secondary.opacity(0.2))
+                                    .foregroundStyle(clip.playbackSpeed == speed ? .white : .primary)
+                                    .clipShape(Capsule())
+                            }
+                        }
+                    }
+
+                    if clip.playbackSpeed != 1.0 {
+                        Picker("Audio", selection: $clip.audioSpeedMode) {
+                            ForEach(AudioSpeedMode.allCases) { mode in
+                                Text(mode.rawValue).tag(mode)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        .padding(.horizontal, 32)
+                    }
+                }
                 .padding(.horizontal, 24)
 
                 Spacer()
