@@ -6,6 +6,7 @@ struct ClipPickerView: View {
     @State private var selectedItems: [PhotosPickerItem] = []
     @State private var isLoading = false
     @State private var loadError: String?
+    @State private var showJumpDetection = false
 
     var body: some View {
         VStack(spacing: 24) {
@@ -52,6 +53,18 @@ struct ClipPickerView: View {
             }
             .padding(.horizontal, 32)
 
+            Button {
+                showJumpDetection = true
+            } label: {
+                Label("Auto-Detect Jumps", systemImage: "wand.and.stars")
+                    .font(.subheadline)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(.secondary.opacity(0.2))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+            .padding(.horizontal, 32)
+
             if isLoading {
                 ProgressView("Loading clips...")
             }
@@ -63,6 +76,11 @@ struct ClipPickerView: View {
             }
 
             Spacer()
+        }
+        .sheet(isPresented: $showJumpDetection) {
+            NavigationStack {
+                JumpDetectionView(clips: $clips)
+            }
         }
         .onChange(of: selectedItems) {
             Task { await loadSelectedVideos() }
