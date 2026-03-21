@@ -1,5 +1,6 @@
 import CoreMedia
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct ExportSettingsView: View {
     let clips: [Clip]
@@ -8,6 +9,8 @@ struct ExportSettingsView: View {
     @State private var quality: ExportQuality = .hd1080
     @State private var aspectRatio: AspectRatio = .original
     @State private var colourAdjustment: ColourAdjustment = .default
+    @State private var backgroundMusic = BackgroundMusic()
+    @State private var showMusicPicker = false
     @State private var showProgress = false
 
     private var totalDurationTime: CMTime {
@@ -71,6 +74,52 @@ struct ExportSettingsView: View {
                 Text(aspectRatio.description)
                     .font(.caption)
                     .foregroundStyle(.secondary)
+            }
+
+            Section("Background Music") {
+                if backgroundMusic.isSelected {
+                    LabeledContent("Track", value: backgroundMusic.title)
+                    HStack {
+                        Text("Music Volume")
+                            .font(.caption)
+                        Slider(value: $backgroundMusic.volume, in: 0...1)
+                    }
+                    HStack {
+                        Text("Original Audio")
+                            .font(.caption)
+                        Slider(value: $backgroundMusic.originalVolume, in: 0...1)
+                    }
+                    Button("Remove Music", role: .destructive) {
+                        backgroundMusic.clear()
+                    }
+                } else {
+                    Button {
+                        showMusicPicker = true
+                    } label: {
+                        Label("Add Music", systemImage: "music.note")
+                    }
+                }
+
+                Text("Import a royalty-free audio file from your device.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .fileImporter(
+                isPresented: $showMusicPicker,
+                allowedContentTypes: [.audio],
+                allowsMultipleSelection: false
+            ) { result in
+                if case .success(let urls) = result, let url = urls.first {
+                    guard url.startAccessingSecurityScopedResource() else { return }
+                    // Copy to temp to retain access
+                    let dest = FileManager.default.temporaryDirectory
+                        .appendingPathComponent(UUID().uuidString)
+                        .appendingPathExtension(url.pathExtension)
+                    try? FileManager.default.copyItem(at: url, to: dest)
+                    url.stopAccessingSecurityScopedResource()
+                    backgroundMusic.url = dest
+                    backgroundMusic.title = url.deletingPathExtension().lastPathComponent
+                }
             }
 
             Section("Colour Adjustment") {
@@ -148,7 +197,8 @@ struct ExportSettingsView: View {
                     clips: clips,
                     quality: quality,
                     aspectRatio: aspectRatio,
-                    colourAdjustment: colourAdjustment
+                    colourAdjustment: colourAdjustment,
+                    backgroundMusic: backgroundMusic
                 ) {
                     dismiss()
                     onComplete()

@@ -17,7 +17,8 @@ final class VideoCompositionService {
         clips: [Clip],
         quality: ExportQuality,
         aspectRatio: AspectRatio = .original,
-        colourAdjustment: ColourAdjustment = .default
+        colourAdjustment: ColourAdjustment = .default,
+        backgroundMusic: BackgroundMusic? = nil
     ) async throws -> URL {
         guard !clips.isEmpty else { throw CompositionError.noClips }
 
@@ -48,9 +49,16 @@ final class VideoCompositionService {
                 finalVideoComposition = videoComposition
             }
 
+            // Mix in background music if provided
+            let audioMix = try await buildAudioMix(
+                composition: composition,
+                backgroundMusic: backgroundMusic
+            )
+
             let outputURL = try await performExport(
                 composition: composition,
                 videoComposition: finalVideoComposition,
+                audioMix: audioMix,
                 quality: quality
             )
             isExporting = false
@@ -490,6 +498,7 @@ final class VideoCompositionService {
     private func performExport(
         composition: AVMutableComposition,
         videoComposition: AVVideoComposition?,
+        audioMix: AVAudioMix? = nil,
         quality: ExportQuality
     ) async throws -> URL {
         guard let exportSession = AVAssetExportSession(
@@ -502,6 +511,7 @@ final class VideoCompositionService {
             .appendingPathExtension("mov")
 
         exportSession.videoComposition = videoComposition
+        exportSession.audioMix = audioMix
         exportSession.shouldOptimizeForNetworkUse = true
 
         Log.export.info("Starting export with preset: \(quality.presetName)")
@@ -526,6 +536,58 @@ final class VideoCompositionService {
 
         Log.export.info("Export completed successfully")
         return outputURL
+    }
+
+    // MARK: - Audio Mix
+
+    private func buildAudioMix(
+        composition: AVMutableComposition,
+        backgroundMusic: BackgroundMusic?
+    ) async throws -> AVAudioMix? {
+        guard let music = backgroundMusic, music.isSelected, let musicAsset = music.asset else {
+            return nil
+        }
+
+        let totalDuration = composition.duration
+
+        // Add music track to composition
+        guard let musicTrack = composition.addMutableTrack(
+            withMediaType: .audio,
+            preferredTrackID: kCMPersistentTrackID_Invalid
+        ) else { return nil }
+
+        if let sourceAudio = try await musicAsset.loadTracks(withMediaType: .audio).first {
+            let musicDuration = try await musicAsset.load(.duration)
+            // Loop music if shorter than video
+            var insertTime = CMTime.zero
+            while CMTimeCompare(insertTime, totalDuration) < 0 {
+                let remaining = CMTimeSubtract(totalDuration, insertTime)
+                let insertDuration = CMTimeCompare(musicDuration, remaining) <= 0 ? musicDuration : remaining
+                let timeRange = CMTimeRange(start: .zero, duration: insertDuration)
+                try musicTrack.insertTimeRange(timeRange, of: sourceAudio, at: insertTime)
+                insertTime = CMTimeAdd(insertTime, insertDuration)
+            }
+        }
+
+        // Build audio mix with volume levels
+        let audioMix = AVMutableAudioMix()
+        var inputParameters: [AVMutableAudioMixInputParameters] = []
+
+        // Set music volume
+        let musicParams = AVMutableAudioMixInputParameters(track: musicTrack)
+        musicParams.setVolume(music.volume, at: .zero)
+        inputParameters.append(musicParams)
+
+        // Set original audio volume for all existing audio tracks
+        for track in composition.tracks(withMediaType: .audio) where track != musicTrack {
+            let params = AVMutableAudioMixInputParameters(track: track)
+            params.setVolume(music.originalVolume, at: .zero)
+            inputParameters.append(params)
+        }
+
+        audioMix.inputParameters = inputParameters
+        Log.composition.info("Audio mix built: music volume \(music.volume), original volume \(music.originalVolume)")
+        return audioMix
     }
 
     // MARK: - Helpers
