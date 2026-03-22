@@ -45,7 +45,8 @@ enum VideoQualityService {
     }
 
     /// Analyse a clip for quality issues.
-    static func analyse(asset: AVAsset) async -> QualityReport {
+    static func analyse(url: URL) async -> QualityReport {
+        let asset = AVURLAsset(url: url)
         var report = QualityReport()
 
         // Check resolution

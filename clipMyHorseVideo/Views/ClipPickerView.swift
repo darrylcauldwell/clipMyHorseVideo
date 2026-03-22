@@ -81,7 +81,8 @@ struct ClipPickerView: View {
 
     private func analyseQuality(for clips: [Clip]) async {
         for clip in clips {
-            let report = await VideoQualityService.analyse(asset: clip.asset)
+            guard let urlAsset = clip.asset as? AVURLAsset else { continue }
+            let report = await VideoQualityService.analyse(url: urlAsset.url)
             clip.qualityReport = report
         }
     }

@@ -3,7 +3,8 @@ import Speech
 
 enum TranscriptionService {
     /// Transcribe speech from a video clip's audio track.
-    static func transcribe(asset: AVAsset, timeRange: CMTimeRange) async throws -> String {
+    static func transcribe(url: URL, timeRange: CMTimeRange) async throws -> String {
+        let asset = AVURLAsset(url: url)
         if SFSpeechRecognizer.authorizationStatus() != .authorized {
             let status = await withCheckedContinuation { continuation in
                 SFSpeechRecognizer.requestAuthorization { status in
@@ -28,7 +29,7 @@ enum TranscriptionService {
         request.shouldReportPartialResults = false
         request.addsPunctuation = true
 
-        let result = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<SFSpeechRecognitionResult, Error>) in
+        let transcript = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<String, Error>) in
             var hasResumed = false
             recognizer.recognitionTask(with: request) { result, error in
                 guard !hasResumed else { return }
@@ -37,13 +38,13 @@ enum TranscriptionService {
                     continuation.resume(throwing: error)
                 } else if let result, result.isFinal {
                     hasResumed = true
-                    continuation.resume(returning: result)
+                    continuation.resume(returning: result.bestTranscription.formattedString)
                 }
             }
         }
 
-        Log.transcription.info("Transcription complete: \(result.bestTranscription.formattedString.prefix(100))")
-        return result.bestTranscription.formattedString
+        Log.transcription.info("Transcription complete: \(transcript.prefix(100))")
+        return transcript
     }
 
     /// Extract structured announcer info from raw transcript text.

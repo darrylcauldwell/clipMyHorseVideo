@@ -1,9 +1,9 @@
 import AppIntents
 
 struct ExportVideoIntent: AppIntent {
-    static var title: LocalizedStringResource = "Export My Round"
-    static var description: IntentDescription = "Opens ClearRound to export your assembled showjumping round."
-    static var openAppWhenRun = true
+    static let title: LocalizedStringResource = "Export My Round"
+    static let description: IntentDescription = "Opens ClearRound to export your assembled showjumping round."
+    static let openAppWhenRun = true
 
     @MainActor
     func perform() async throws -> some IntentResult {

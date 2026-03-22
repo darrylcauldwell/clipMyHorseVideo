@@ -113,9 +113,10 @@ struct TrimEditorView: View {
             endFraction = clip.trimEnd.seconds / totalSeconds
             player = AVPlayer(playerItem: AVPlayerItem(asset: clip.asset))
 
-            if clip.filmstripThumbnails.isEmpty {
+            if clip.filmstripThumbnails.isEmpty, let urlAsset = clip.asset as? AVURLAsset {
+                let url = urlAsset.url
                 Task {
-                    clip.filmstripThumbnails = await ThumbnailService.generateFilmstrip(for: clip.asset)
+                    clip.filmstripThumbnails = await ThumbnailService.generateFilmstrip(for: url)
                 }
             }
         }

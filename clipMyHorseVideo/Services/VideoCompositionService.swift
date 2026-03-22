@@ -54,8 +54,10 @@ final class VideoCompositionService {
                     applyTextOverlays(textOverlays, to: mutableComp, renderSize: renderSize)
                 } else if finalVideoComposition == nil {
                     // Create a basic mutable video composition for text overlay
+                    // Safe: composition is exclusively owned by this method
+                    nonisolated(unsafe) let comp = composition
                     let mutableComp = try await AVMutableVideoComposition.videoComposition(
-                        withPropertiesOf: composition
+                        withPropertiesOf: comp
                     )
                     applyTextOverlays(textOverlays, to: mutableComp, renderSize: renderSize)
                 }
@@ -403,14 +405,14 @@ final class VideoCompositionService {
 
         Log.export.info("Starting export with preset: \(quality.presetName)")
 
-        // Monitor progress in background
-        let progressTask = Task.detached { [weak self] in
+        // Monitor progress on MainActor (suspends between updates, doesn't block)
+        let progressTask = Task {
             for await state in exportSession.states(updateInterval: 0.1) {
                 switch state {
                 case .pending, .waiting:
                     break
                 case .exporting(let p):
-                    await MainActor.run { self?.progress = p.fractionCompleted }
+                    self.progress = p.fractionCompleted
                 @unknown default:
                     break
                 }

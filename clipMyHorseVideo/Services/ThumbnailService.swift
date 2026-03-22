@@ -20,13 +20,18 @@ enum ThumbnailService {
     /// Returns results as they complete so callers can apply them incrementally.
     @MainActor
     static func generateThumbnails(for clips: [Clip]) async {
+        // Extract Sendable URLs on MainActor before entering the task group
+        let clipInfo: [(id: UUID, url: URL)] = clips.compactMap { clip in
+            guard let urlAsset = clip.asset as? AVURLAsset else { return nil }
+            return (id: clip.id, url: urlAsset.url)
+        }
+
         await withTaskGroup(of: (UUID, UIImage?).self) { group in
-            for clip in clips {
-                let clipID = clip.id
-                let asset = clip.asset
+            for info in clipInfo {
                 group.addTask {
+                    let asset = AVURLAsset(url: info.url)
                     let image = await generateThumbnail(for: asset)
-                    return (clipID, image)
+                    return (info.id, image)
                 }
             }
 
@@ -39,7 +44,8 @@ enum ThumbnailService {
     }
 
     /// Generates evenly-spaced filmstrip thumbnails across a clip's duration for the trim editor.
-    static func generateFilmstrip(for asset: AVAsset, count: Int = 10) async -> [UIImage] {
+    static func generateFilmstrip(for url: URL, count: Int = 10) async -> [UIImage] {
+        let asset = AVURLAsset(url: url)
         let generator = AVAssetImageGenerator(asset: asset)
         generator.maximumSize = CGSize(width: 160, height: 90)
         generator.appliesPreferredTrackTransform = true

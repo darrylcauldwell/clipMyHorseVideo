@@ -1,9 +1,9 @@
 import AppIntents
 
 struct StartEditingIntent: AppIntent {
-    static var title: LocalizedStringResource = "Start Editing My Round"
-    static var description: IntentDescription = "Opens ClearRound to the clip picker to start building your showjumping round."
-    static var openAppWhenRun = true
+    static let title: LocalizedStringResource = "Start Editing My Round"
+    static let description: IntentDescription = "Opens ClearRound to the clip picker to start building your showjumping round."
+    static let openAppWhenRun = true
 
     @MainActor
     func perform() async throws -> some IntentResult {

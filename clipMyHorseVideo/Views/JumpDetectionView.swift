@@ -7,6 +7,8 @@ struct JumpDetectionView: View {
     @State private var detectionService = JumpDetectionService()
     @State private var sourceAsset: AVAsset?
     @State private var errorMessage: String?
+    @State private var previewingJump: DetectedJump?
+    @State private var previewPlayer: AVPlayer?
 
     var body: some View {
         VStack(spacing: 16) {
@@ -38,18 +40,43 @@ struct JumpDetectionView: View {
                         .foregroundStyle(.secondary)
                 }
             } else if !detectionService.detectedJumps.isEmpty {
+                // Inline preview player
+                if let previewingJump, let previewPlayer {
+                    VideoPlayer(player: previewPlayer)
+                        .frame(height: 200)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .padding(.horizontal, 16)
+                        .onTapGesture { withAnimation { stopPreview() } }
+
+                    Text("Jump at \(previewingJump.startTime.formattedDuration)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                // Clip duration control
+                VStack(spacing: 4) {
+                    HStack {
+                        Text("Clip duration")
+                            .font(.subheadline)
+                        Spacer()
+                        Text("\(Int(detectionService.paddingSeconds * 2))s")
+                            .font(.subheadline.monospacedDigit())
+                            .foregroundStyle(.secondary)
+                    }
+                    Slider(value: Binding(
+                        get: { detectionService.paddingSeconds },
+                        set: { detectionService.updatePadding($0) }
+                    ), in: 2...8, step: 1)
+                }
+                .padding(.horizontal, 24)
+
                 List {
                     ForEach(detectionService.detectedJumps) { jump in
-                        HStack {
-                            Toggle(isOn: Bindable(jump).isAccepted) {
-                                VStack(alignment: .leading) {
-                                    Text("Jump at \(jump.startTime.formattedDuration)")
-                                        .font(.headline)
-                                    Text("Duration: \(jump.duration.formattedDuration) — Confidence: \(Int(jump.confidence * 100))%")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
+                        JumpRow(
+                            jump: jump,
+                            isPreviewing: previewingJump?.id == jump.id
+                        ) {
+                            withAnimation { togglePreview(for: jump) }
                         }
                     }
                 }
@@ -82,7 +109,10 @@ struct JumpDetectionView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
-                Button("Cancel") { dismiss() }
+                Button("Cancel") {
+                    stopPreview()
+                    dismiss()
+                }
             }
         }
         .task {
@@ -92,6 +122,87 @@ struct JumpDetectionView: View {
             }
             sourceAsset = firstClip.asset
             await detectionService.analyse(asset: firstClip.asset)
+        }
+    }
+
+    private func togglePreview(for jump: DetectedJump) {
+        if previewingJump?.id == jump.id {
+            stopPreview()
+            return
+        }
+
+        guard let asset = sourceAsset else { return }
+
+        stopPreview()
+
+        let item = AVPlayerItem(asset: asset)
+        item.forwardPlaybackEndTime = jump.endTime
+        let player = AVPlayer(playerItem: item)
+
+        // Observe end of playback to loop
+        NotificationCenter.default.addObserver(
+            forName: .AVPlayerItemDidPlayToEndTime,
+            object: item,
+            queue: .main
+        ) { _ in
+            player.seek(to: jump.startTime)
+            player.play()
+        }
+
+        self.previewPlayer = player
+        self.previewingJump = jump
+
+        Task {
+            await player.seek(to: jump.startTime)
+            player.play()
+        }
+    }
+
+    private func stopPreview() {
+        previewPlayer?.pause()
+        if let item = previewPlayer?.currentItem {
+            NotificationCenter.default.removeObserver(self, name: .AVPlayerItemDidPlayToEndTime, object: item)
+        }
+        previewPlayer = nil
+        previewingJump = nil
+    }
+}
+
+// MARK: - Jump Row
+
+private struct JumpRow: View {
+    @Bindable var jump: DetectedJump
+    let isPreviewing: Bool
+    let onTapPreview: () -> Void
+
+    var body: some View {
+        HStack(spacing: 12) {
+            // Preview button
+            Button(action: onTapPreview) {
+                Image(systemName: isPreviewing ? "stop.circle.fill" : "play.circle.fill")
+                    .font(.title2)
+                    .foregroundStyle(isPreviewing ? .red : .accent)
+            }
+            .buttonStyle(.plain)
+
+            // Jump info — tap to preview
+            VStack(alignment: .leading) {
+                Text("Jump at \(jump.startTime.formattedDuration)")
+                    .font(.headline)
+                Text("Duration: \(jump.duration.formattedDuration) — Confidence: \(Int(jump.confidence * 100))%")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .contentShape(Rectangle())
+            .onTapGesture(perform: onTapPreview)
+
+            Spacer()
+
+            // Accept/reject toggle
+            Toggle(isOn: $jump.isAccepted) {
+                EmptyView()
+            }
+            .labelsHidden()
         }
     }
 }
