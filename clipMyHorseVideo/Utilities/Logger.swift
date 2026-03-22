@@ -9,4 +9,5 @@ enum Log {
     static let transcription = Logger(subsystem: "dev.dreamfold.ClearRound", category: "transcription")
     static let intents = Logger(subsystem: "dev.dreamfold.ClearRound", category: "intents")
     static let quality = Logger(subsystem: "dev.dreamfold.ClearRound", category: "quality")
+    static let labelling = Logger(subsystem: "dev.dreamfold.ClearRound", category: "labelling")
 }

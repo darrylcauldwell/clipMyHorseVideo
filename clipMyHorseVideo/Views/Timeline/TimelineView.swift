@@ -9,6 +9,10 @@ struct TimelineView: View {
     @State private var showPreview = false
     @State private var showTextEditor = false
     @State private var showJumpDetection = false
+    @State private var showDetectionDiagnostic = false
+    @State private var showSignalDiagnostic = false
+    @State private var showJumpLabelling = false
+    @State private var showJumpEvaluation = false
     @State private var clipForTranscription: Clip?
     @State private var additionalItems: [PhotosPickerItem] = []
 
@@ -77,6 +81,30 @@ struct TimelineView: View {
                         }
 
                         Button {
+                            showDetectionDiagnostic = true
+                        } label: {
+                            Label("Detection Diagnostic", systemImage: "magnifyingglass.circle")
+                        }
+
+                        Button {
+                            showSignalDiagnostic = true
+                        } label: {
+                            Label("Signal Diagnostic", systemImage: "chart.line.uptrend.xyaxis")
+                        }
+
+                        Button {
+                            showJumpLabelling = true
+                        } label: {
+                            Label("Label Jumps", systemImage: "flag")
+                        }
+
+                        Button {
+                            showJumpEvaluation = true
+                        } label: {
+                            Label("Evaluate Detection", systemImage: "checkmark.diamond")
+                        }
+
+                        Button {
                             let overlay = TextOverlay()
                             textOverlays.append(overlay)
                             showTextEditor = true
@@ -115,6 +143,26 @@ struct TimelineView: View {
             .sheet(isPresented: $showJumpDetection) {
                 NavigationStack {
                     JumpDetectionView(clips: $clips)
+                }
+            }
+            .sheet(isPresented: $showDetectionDiagnostic) {
+                NavigationStack {
+                    DetectionDiagnosticView(clips: clips)
+                }
+            }
+            .sheet(isPresented: $showSignalDiagnostic) {
+                NavigationStack {
+                    JumpSignalDiagnosticView(clips: clips)
+                }
+            }
+            .sheet(isPresented: $showJumpLabelling) {
+                NavigationStack {
+                    JumpLabellingView(clips: clips)
+                }
+            }
+            .sheet(isPresented: $showJumpEvaluation) {
+                NavigationStack {
+                    JumpEvaluationView(clips: clips)
                 }
             }
             .sheet(isPresented: $showExportSettings) {
@@ -224,10 +272,14 @@ struct TimelineView: View {
         info.isTranscribing = true
         clip.announcerInfo = info
 
+        guard let urlAsset = clip.asset as? AVURLAsset else { return }
+        let url = urlAsset.url
+        let timeRange = clip.trimmedTimeRange
+
         do {
             let transcript = try await TranscriptionService.transcribe(
-                asset: clip.asset,
-                timeRange: clip.trimmedTimeRange
+                url: url,
+                timeRange: timeRange
             )
             let extracted = TranscriptionService.extractAnnouncerInfo(from: transcript)
             clip.announcerInfo = extracted
